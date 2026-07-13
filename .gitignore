@@ -1,3 +1,4 @@
 .claude
 entropy_ai.egg-info
 .pytest_cache
+__pycache__/
