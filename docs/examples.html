@@ -14,6 +14,42 @@
     <main class="content">
       <h1 class="page-title">Examples</h1>
 
+      <p>Each example below is a <strong>complete, copy-pasteable file</strong>.</p>
+
+      <h2>End-to-end: trace, evaluate, assert, report</h2>
+      <pre><code># end_to_end.py
+import random
+from entropy import (Suite, Dataset, Case, trace, event,
+                     assert_stable, export_report)
+
+# 1. Agent under test — returns an AgentRun with traced events.
+def agent(inp):
+    with trace():
+        event("action", "tool:search", query=inp)
+        event("observation", "top_result", n=5)
+        event("action", "reply")
+    # 70% of the time we answer correctly, otherwise we drift.
+    return "A" if random.random() < 0.7 else "Z"
+
+# 2. Dataset.
+dataset = Dataset([
+    Case(input="weather", expected="A"),
+    Case(input="news", expected="A"),
+])
+
+# 3. Monte Carlo evaluation.
+results = Suite(seed=42).run(agent, dataset, trials=200)
+print("success_rate:", results["success_rate"])
+print("behavioral_entropy:", results["behavioral_entropy"])
+print("drift_score:", results["drift_score"])
+
+# 4. Regression gate.
+assert_stable(results, success_rate__gt=0.5, drift_score__lt=0.3)
+
+# 5. Export an HTML report.
+export_report(results, "html", "report.html")
+print("wrote report.html")</code></pre>
+
       <h2>Evaluating a stochastic agent</h2>
       <p>A non-deterministic agent that mostly returns <code>"A"</code> but
       sometimes <code>"B"</code> or <code>"C"</code>:</p>

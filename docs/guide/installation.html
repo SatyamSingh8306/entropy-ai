@@ -51,6 +51,38 @@ pip install "entropy-ai[pdf,jupyter]"  # optional: PDF / Jupyter reports</code><
         </tbody>
       </table>
 
+      <h2>From scratch (minimal runnable project)</h2>
+      <p>Create a virtual environment, install EntroPy, and add two small files
+      you can run immediately:</p>
+      <pre><code># 1. environment
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -e .
+
+# 2. agent.py
+cat > agent.py <<'PY'
+def agent(inp):
+    # return the agent output (or an entropy.AgentRun)
+    return str(inp)
+PY
+
+# 3. dataset.json
+cat > dataset.json <<'JSON'
+{"cases": [{"input": "hello", "expected": "hello"}]}
+JSON
+
+# 4. run it
+entropy run --agent agent:agent --dataset dataset.json --trials 100</code></pre>
+      <p>Or evaluate the same thing in pure Python:</p>
+      <pre><code>from entropy import Suite, Dataset, Case
+
+def agent(inp):
+    return str(inp)
+
+dataset = Dataset([Case(input="hello", expected="hello")])
+results = Suite(seed=42).run(agent, dataset, trials=100)
+print(results)</code></pre>
+
       <div class="callout tip">
         <h4>Check your environment</h4>
         <p>Run <code>entropy doctor</code> to see which optional dependencies and framework adapters are available in your environment.</p>

@@ -14,6 +14,42 @@
     <main class="content">
       <h1 class="page-title">Quickstart</h1>
 
+      <p>Here is a <strong>complete, runnable script</strong> — save it as
+      <code>quickstart.py</code> and run <code>python quickstart.py</code>. The
+      rest of the page explains each part.</p>
+
+      <pre><code># quickstart.py
+import random
+from entropy import Suite, Dataset, Case, assert_stable
+
+# 1. The agent under test: any callable. Here a non-deterministic one.
+def my_agent(inp):
+    r = random.random()
+    if r < 0.7:
+        return "A"
+    if r < 0.9:
+        return "B"
+    return "C"
+
+# 2. A dataset: inputs plus the expected (or check) outputs.
+dataset = Dataset([
+    Case(input="q1", expected="A"),
+    Case(input="q2", expected="B"),
+])
+
+# 3. Run the Monte Carlo suite: `trials` runs per case.
+results = Suite(seed=42).run(my_agent, dataset, trials=100)
+print(results)   # 50+ metrics: success_rate, behavioral_entropy, ...
+
+# 4. Regression gate: fail the run if behavior drifts out of bounds.
+assert_stable(
+    results,
+    success_rate__gt=0.3,
+    behavioral_entropy__gt=0.0,   # non-deterministic -> non-zero entropy
+    drift_score__lt=0.2,
+)
+print("assert_stable: OK")</code></pre>
+
       <p>EntroPy evaluates an agent by running it many times and measuring the
       <em>distribution</em> of its behavior. This takes three objects:</p>
       <ul>
