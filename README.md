@@ -10,23 +10,42 @@ lock-in.
 ## Install
 
 ```bash
-pip install -e .                       # core (pandas, matplotlib, jinja2, rich, pyyaml)
+pip install entropy-ai                 # from PyPI — core (pandas, matplotlib, jinja2, rich, pyyaml)
 pip install "entropy-ai[langchain]"    # optional: a framework adapter
 pip install "entropy-ai[pdf,jupyter]"  # optional: PDF / Jupyter reports
+```
+
+Developing EntroPy itself? Clone the repo and use an editable install instead:
+
+```bash
+pip install -e .                       # editable install from the repo
+pip install -e ".[pdf,jupyter]"        # + report extras (what CI installs)
 ```
 
 ## Quick start
 
 ```python
-from entropy import Suite, Dataset, Case
+from entropy import evaluate
 
 def my_agent(inp): ...
-    # return an output, an AgentRun, or a dict with events
+    # just return the output — no boilerplate needed
+
+# One line. Pass raw inputs; success = "didn't error" by default.
+results = evaluate(my_agent, ["q1", "q2", "q3"], trials=100)
+print(results)   # success_rate, behavioral_entropy, drift_score, ...
+```
+
+Need more control? Everything above is just sugar over `Suite`:
+
+```python
+from entropy import Suite, Dataset, Case
 
 dataset = Dataset([Case(input="q1", expected="correct answer")])
 results = Suite(seed=42).run(my_agent, dataset, trials=100)
-print(results)   # success_rate, behavioral_entropy, drift_score, ...
 ```
+
+`evaluate` / `Suite.run` accept a list of raw inputs, a `{input: expected}` dict,
+or a `Dataset` — and a shared `check=` callable as the success criterion.
 
 The canonical output (spec §9 / §21) includes: `success_rate`, `reliability`,
 `variance`, `robustness`, `entropy`, `confidence_interval`, `behavioral_entropy`,

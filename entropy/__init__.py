@@ -10,7 +10,7 @@ from .core import (
     ActionEvent, ReasoningEvent, ToolCallEvent, ObservationEvent,
     MemoryReadEvent, MemoryWriteEvent, ErrorEvent, StateTransitionEvent,
     instrument, trace, event, current_trace,
-    Suite, assert_stable,
+    Suite, evaluate, assert_stable,
 )
 from .metrics import metric, Metric, Batch, default_metrics, layers
 from .datasets import (
@@ -43,7 +43,7 @@ __all__ = [
     "ActionEvent", "ReasoningEvent", "ToolCallEvent", "ObservationEvent",
     "MemoryReadEvent", "MemoryWriteEvent", "ErrorEvent", "StateTransitionEvent",
     "instrument", "trace", "event", "current_trace",
-    "metric", "Batch", "default_metrics", "layers",
+    "metric", "Batch", "default_metrics", "layers", "evaluate",
     "adapter", "find_adapter", "list_adapters",
     "from_langchain", "from_langgraph", "from_openai", "from_crewai",
     "from_pydanticai", "from_autogen", "from_google_adk", "from_mcp", "from_custom",
