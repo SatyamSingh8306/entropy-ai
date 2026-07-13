@@ -4,8 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "entropy-ai"
-version = "0.1.0"
+version = "0.1.1"
 description = "Behavioral evaluation framework for non-deterministic AI agents"
+readme = "README.md"
+authors = [
+    { name = "Satyam Singh", email = "satyamsingh7734@gmail.com" },
+]
 requires-python = ">=3.9"
 dependencies = [
     "pandas",

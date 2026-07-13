@@ -110,8 +110,9 @@ Tests: `python -m pytest tests/`.
 
 ## Documentation
 
-The static documentation site lives in [`docs/`](docs/) — plain
-HTML/CSS/JS with no build step, deployable to GitHub Pages.
+- **Live site:** https://satyamsingh8306.github.io/entropy-ai/
+- **Source:** [`docs/`](docs/) — plain HTML/CSS/JS with no build step, deployed
+  to GitHub Pages.
 
 - Source: `docs/index.html`, `docs/guide/*.html`, `docs/api.html`,
   `docs/examples.html`, plus `docs/assets/` (CSS, JS, logo, search index).
