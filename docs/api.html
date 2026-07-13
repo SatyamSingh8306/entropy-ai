@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>API Reference — EntroPy</title>
+  <meta name="description" content="Full API reference for EntroPy's core, metrics, simulation, chaos, observability and integration modules."/>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <link rel="icon" href="assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='.';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">API Reference</h1>
+      <p>Everything below is importable from the top-level <code>entropy</code>
+      package (e.g. <code>from entropy import Suite</code>). Modules are listed
+      by area; see the <a href="guide/metrics.html">Metrics Catalog</a> for the full
+      metric list.</p>
+
+      <h2 id="core">Core — <code>entropy.core</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Signature / Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>Suite(seed=0, metrics=None)</code></td><td>Monte Carlo runner. <code>.run(agent, dataset, trials=100, extractor=None) -&gt; dict</code>.</td></tr>
+          <tr><td><code>assert_stable(results, **thresholds)</code></td><td>Regression gate; thresholds like <code>success_rate__gt=0.9</code>. Raises on violation.</td></tr>
+          <tr><td><code>AgentRun</code></td><td>Dataclass: <code>run_id, input, output, events, cost, metadata</code>.</td></tr>
+          <tr><td><code>Event</code> / typed events</td><td><code>ActionEvent, ReasoningEvent, ToolCallEvent, ObservationEvent, MemoryReadEvent, MemoryWriteEvent, ErrorEvent, StateTransitionEvent</code>.</td></tr>
+          <tr><td><code>Trace</code></td><td>Dataclass: <code>runs, nodes, edges, metadata</code> + <code>.json() .df() .graph() .otel() .zip()</code>.</td></tr>
+          <tr><td><code>Node</code>, <code>Edge</code></td><td>Behavior graph primitives.</td></tr>
+          <tr><td><code>instrument(agent)</code></td><td>Wrap a callable (or framework agent) to return an <code>AgentRun</code>.</td></tr>
+          <tr><td><code>trace()</code>, <code>event(type, name, **data)</code>, <code>current_trace()</code></td><td>Manual tracing context &amp; emitters.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="metrics">Metrics — <code>entropy.metrics</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>metric(name=None)</code></td><td>Decorator registering a metric class.</td></tr>
+          <tr><td><code>Metric</code></td><td>Base class; implement <code>compute(self, batch)</code>.</td></tr>
+          <tr><td><code>Batch</code></td><td>Per-input aggregation: outputs, behaviors, actions, tool_calls, successes, costs, errored, recovered.</td></tr>
+          <tr><td><code>default_metrics()</code></td><td>List the canonical Suite metric names.</td></tr>
+          <tr><td><code>layers</code></td><td>Mapping of evaluation layer → metrics (see <a href="guide/metrics.html">Metrics</a>).</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="datasets">Datasets — <code>entropy.datasets</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>Dataset(list)</code></td><td>List of cases; <code>from_json / from_jsonl / from_yaml / from_csv / from_hf</code>, <code>.save()</code>.</td></tr>
+          <tr><td><code>Case(input, expected=None, check=None, metadata=None)</code></td><td>Generic case.</td></tr>
+          <tr><td><code>GoldenCase</code>, <code>Scenario</code>, <code>BehaviorCase</code>, <code>FailureCase</code>, <code>AdversarialCase</code></td><td>Specialized cases.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="sim">Simulation — <code>entropy.simulation</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>ScriptedUserSimulator(script)</code>, <code>RandomUserSimulator(pool, seed=0)</code>, <code>LLMUserSimulator(client, model)</code></td><td>User turn generators with <code>.next()</code> / <code>.reset()</code>.</td></tr>
+          <tr><td><code>StatefulEnv(state=None)</code>, <code>GridWorld(w, h, goal)</code></td><td>Environments with <code>.step(action)</code> / <code>.reset()</code>.</td></tr>
+          <tr><td><code>AdversarialSimulator(seed=0, attacks=None)</code></td><td><code>.iterate(text)</code>, <code>.perturb(text, kind)</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="chaos">Chaos — <code>entropy.chaos</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>ChaosRunner(seed=0)</code></td><td><code>.run(agent, dataset, faults, trials=50) -&gt; dict</code>, <code>.summary(result)</code>.</td></tr>
+          <tr><td><code>chaos_inject(agent, fault, p=1.0, seed=0)</code></td><td>Wrap an agent so a fault fires with probability <code>p</code>.</td></tr>
+          <tr><td><code>chaos_available()</code></td><td>List available fault names.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="obs">Observability — <code>entropy.observability</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>Watcher(agent, dataset, trials=20, seed=0)</code></td><td><code>.watch(rounds, interval, render)</code>, <code>.series()</code>, <code>.anomalies()</code>, <code>.failure_clusters()</code>.</td></tr>
+          <tr><td><code>render_metric_heatmap(history, path, metrics=None)</code></td><td>Writes a PNG heatmap.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="reports">Reports &amp; Dashboard — <code>entropy.reports</code>, <code>entropy.dashboard</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>export_report(results, fmt, path, title="EntroPy Report")</code></td><td>HTML / JSON / Markdown / PDF / Jupyter.</td></tr>
+          <tr><td><code>export(results, fmt, path, title)</code></td><td>Lower-level dispatcher.</td></tr>
+          <tr><td><code>build_dashboard(results, out_dir)</code>, <code>serve_dashboard(out_dir, port=8000)</code></td><td>Static dashboard HTML.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="integrations">Integrations — <code>entropy.integrations</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>from_langchain / from_langgraph / from_openai / from_crewai / from_pydanticai / from_autogen / from_google_adk / from_mcp / from_custom</code></td><td>Wrap a framework agent into a callable.</td></tr>
+          <tr><td><code>adapter(name)</code>, <code>Adapter</code>, <code>register_adapter</code></td><td>Define custom adapters.</td></tr>
+          <tr><td><code>find_adapter(agent)</code>, <code>list_adapters()</code></td><td>Discovery helpers.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="plugins">Plugins — <code>entropy.plugins</code></h2>
+      <table>
+        <thead><tr><th>Symbol</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>exporter(name=None)</code></td><td>Register a report exporter <code>fn(results, path) -&gt; str</code>.</td></tr>
+          <tr><td><code>discover(group="entropy.plugins")</code></td><td>Import entry-point plugins.</td></tr>
+        </tbody>
+      </table>
+
+      <nav class="prevnext">
+        <a class="prev" href="guide/plugins.html"><span class="lbl">Previous</span><span class="ttl">Plugins</span></a>
+        <a class="next" href="examples.html"><span class="lbl">Next</span><span class="ttl">Examples</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="index.html">Home</a> · <a href="api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

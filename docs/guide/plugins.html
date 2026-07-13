@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Plugins — EntroPy</title>
+  <meta name="description" content="Extend EntroPy with custom metrics, adapters and exporters via the plugin system."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Plugins</h1>
+      <p>EntroPy is extensible at three points: <strong>metrics</strong>,
+      <strong>adapters</strong>, and <strong>exporters</strong>. Plugins register
+      themselves on import, so third-party packages can add functionality
+      without touching core code.</p>
+
+      <h2>Custom metrics</h2>
+      <p>Decorate a class that implements <code>compute(self, batch)</code>:</p>
+      <pre><code>from entropy import metric
+
+@metric("my_metric")
+class MyMetric:
+    def compute(self, batch):
+        # batch has outputs / events / behaviors / successes / costs ...
+        return sum(batch.costs) / len(batch.costs)</code></pre>
+      <p>Once imported, <code>"my_metric"</code> is available to
+      <code>Suite(metrics=[...])</code>. Use <code>default("my_metric")</code>
+      inside the module to include it in the canonical set.</p>
+
+      <h2>Custom adapters</h2>
+      <pre><code>from entropy import adapter, Adapter, AgentRun
+
+@adapter("myfw")
+class MyAdapter(Adapter):
+    def match(self, agent):
+        return type(agent).__name__ == "MyFrameworkAgent"
+    def wrap(self, agent):
+        def call(inp):
+            return AgentRun(run_id="", input=inp, output=agent(inp))
+        return call</code></pre>
+
+      <h2>Custom exporters</h2>
+      <pre><code>from entropy import exporter
+
+@exporter("latex")
+def to_latex(results, path):
+    text = "\n".join(f"{k} & {v:.4f} \\\\" for k, v in results.items())
+    open(path, "w").write(text)
+    return path</code></pre>
+
+      <h2>Discovery (entry points)</h2>
+      <p>Third-party packages register a
+      <code>entropy.plugins</code> entry point in their
+      <code>pyproject.toml</code>:</p>
+      <pre><code>[project.entry-points."entropy.plugins"]
+my_plugin = "my_pkg.plugin"</code></pre>
+      <p>EntroPy discovers and imports them on demand:</p>
+      <pre><code>from entropy import discover
+print(discover())   # names of loaded plugin modules</code></pre>
+
+      <nav class="prevnext">
+        <a class="prev" href="reports.html"><span class="lbl">Previous</span><span class="ttl">Reports</span></a>
+        <a class="next" href="../api.html"><span class="lbl">Next</span><span class="ttl">API Reference</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

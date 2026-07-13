@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Observability — EntroPy</title>
+  <meta name="description" content="Watch an agent over time and detect drift and anomalies."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Observability</h1>
+      <p>The <code>Watcher</code> periodically re-runs an agent and tracks how
+      its metrics evolve — useful for live drift and anomaly detection in
+      production-like loops.</p>
+
+      <h2>Watching</h2>
+      <pre><code>from entropy import Watcher
+
+w = Watcher(agent, dataset, trials=20, seed=0)
+history = w.watch(rounds=10)   # prints success / drift / entropy per round</code></pre>
+
+      <h2>Inspecting the history</h2>
+      <pre><code># series of a single metric across rounds
+print(w.series("drift_score"))
+
+# rounds flagged as anomalies (z-score &gt; 2.0)
+print(w.anomalies(metric="drift_score", z=2.0))
+
+# most common failing outputs
+print(w.failure_clusters(top=5))</code></pre>
+
+      <h2>Heatmap</h2>
+      <p>Render a min-max-normalized heatmap of watched metrics across rounds:</p>
+      <pre><code>from entropy import render_metric_heatmap
+
+render_metric_heatmap(w.history, "heatmap.png")</code></pre>
+
+      <h2>Custom rendering</h2>
+      <p>Pass a <code>render</code> callback to <code>watch</code> for live TUI
+      or dashboard updates:</p>
+      <pre><code>def render(watcher, i, res, anomaly):
+    flag = "!!" if anomaly else "  "
+    print(f"[{i}] success={res['success_rate']:.3f} {flag}")
+
+w.watch(rounds=10, render=render)</code></pre>
+
+      <div class="callout tip">
+        <h4>CLI</h4>
+        <p><code>entropy watch --agent m:a --dataset d.json --rounds 10</code>
+        runs the watcher from the command line and can emit a heatmap with
+        <code>--heatmap heatmap.png</code>.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="chaos.html"><span class="lbl">Previous</span><span class="ttl">Chaos Engineering</span></a>
+        <a class="next" href="adapters.html"><span class="lbl">Next</span><span class="ttl">Framework Adapters</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

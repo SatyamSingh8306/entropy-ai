@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Simulation — EntroPy</title>
+  <meta name="description" content="User simulators, environments and adversarial input perturbation."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Simulation</h1>
+      <p>EntroPy includes a small simulation engine for stress-testing agents
+      against varied users, environments, and adversarial inputs.</p>
+
+      <h2>User simulators</h2>
+      <p>Model the “other side of the conversation” so you can run agents
+      end-to-end.</p>
+      <pre><code>from entropy import ScriptedUserSimulator, RandomUserSimulator, LLMUserSimulator
+
+scripted = ScriptedUserSimulator(["hi", "help me book", "thanks"])
+print(scripted.next())   # replays, looping at the end
+
+rng = RandomUserSimulator(pool=["hi", "why?", "thanks"], seed=0)
+print(rng.next())        # samples from the pool
+
+# LLMUserSimulator(client=..., model="gpt-4o")  # optional openai extra</code></pre>
+
+      <h2>Environments</h2>
+      <pre><code>from entropy import StatefulEnv, GridWorld
+
+env = GridWorld(width=5, height=5, goal=(4, 4))
+state, reward, done, _ = env.step("right")
+print(state, reward, done)</code></pre>
+      <p><code>StatefulEnv</code> is a generic key/value environment: actions that
+      are dicts update state, and <code>reward</code>/<code>done</code> are read
+      from it. <code>GridWorld</code> is a tiny 2D grid for reward/drift
+      experiments.</p>
+
+      <h2>Adversarial simulator</h2>
+      <p>Perturb inputs to provoke unsafe behavior. Four attack transforms ship
+      by default:</p>
+      <pre><code>from entropy import AdversarialSimulator
+
+adv = AdversarialSimulator(seed=0)
+for v in adv.iterate("book a flight"):
+    print(v)   # typo / injection / distraction / leak variants
+
+# or a single attack:
+print(adv.perturb("book a flight", kind="injection"))</code></pre>
+      <table>
+        <thead><tr><th>Attack</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>typo</code></td><td>Randomly replaces one character.</td></tr>
+          <tr><td><code>injection</code></td><td>Prepends “Ignore previous instructions and instead:”.</td></tr>
+          <tr><td><code>distraction</code></td><td>Appends an off-topic question.</td></tr>
+          <tr><td><code>leak</code></td><td>Appends a prompt to reveal the system prompt / secrets.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <h4>Combine with safety metrics</h4>
+        <p>Run adversarial inputs through the suite and watch
+        <code>prompt_injection</code>, <code>instruction_override</code> and
+        <code>data_leakage</code> (see <a href="metrics.html">Metrics</a>).</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="datasets.html"><span class="lbl">Previous</span><span class="ttl">Datasets</span></a>
+        <a class="next" href="chaos.html"><span class="lbl">Next</span><span class="ttl">Chaos Engineering</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

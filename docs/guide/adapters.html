@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Framework Adapters — EntroPy</title>
+  <meta name="description" content="Map framework agents to EntroPy AgentRuns with lazy adapters."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Framework Adapters</h1>
+      <p>Adapters map a framework-specific agent to an EntroPy-instrumentable
+      callable returning an <code>AgentRun</code>. They import their target
+      framework <strong>lazily</strong>, so
+      <code>import entropy</code> works even when none are installed.</p>
+
+      <h2>Helpers</h2>
+      <pre><code>from entropy import (from_langchain, from_langgraph, from_openai,
+                     from_crewai, from_pydanticai, from_autogen,
+                     from_google_adk, from_mcp, from_custom)
+
+runnable = from_langchain(my_langchain_agent)   # now a callable -> AgentRun</code></pre>
+
+      <table>
+        <thead><tr><th>Helper</th><th>Framework</th><th>Extra</th></tr></thead>
+        <tbody>
+          <tr><td><code>from_langchain</code></td><td>LangChain</td><td><code>langchain</code></td></tr>
+          <tr><td><code>from_langgraph</code></td><td>LangGraph</td><td><code>langgraph</code></td></tr>
+          <tr><td><code>from_openai</code></td><td>OpenAI Agents</td><td><code>openai</code></td></tr>
+          <tr><td><code>from_crewai</code></td><td>CrewAI</td><td><code>crewai</code></td></tr>
+          <tr><td><code>from_pydanticai</code></td><td>PydanticAI</td><td><code>pydanticai</code></td></tr>
+          <tr><td><code>from_autogen</code></td><td>AutoGen</td><td><code>autogen</code></td></tr>
+          <tr><td><code>from_google_adk</code></td><td>Google ADK</td><td><code>google-adk</code></td></tr>
+          <tr><td><code>from_mcp</code></td><td>MCP</td><td><code>mcp</code></td></tr>
+          <tr><td><code>from_custom</code></td><td>Your own wrapper</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Automatic routing</h2>
+      <p><code>instrument(agent)</code> detects the framework type and routes to
+      the matching adapter automatically — no need to call the explicit
+      <code>from_*</code> helper:</p>
+      <pre><code>wrapped = instrument(my_langchain_agent)   # -> LangChainAdapter</code></pre>
+
+      <h2>Discovery &amp; custom adapters</h2>
+      <p>List registered adapters, or build your own with the
+      <code>@adapter</code> decorator (see <a href="plugins.html">Plugins</a>):</p>
+      <pre><code>from entropy import list_adapters, find_adapter, adapter, Adapter
+
+print(list_adapters())
+
+@adapter("myfw")
+class MyAdapter(Adapter):
+    def match(self, agent): return hasattr(agent, "run_myfw")
+    def wrap(self, agent):
+        def call(inp):
+            res = agent.run_myfw(inp)
+            return AgentRun(run_id="", input=inp, output=res)
+        return call</code></pre>
+
+      <nav class="prevnext">
+        <a class="prev" href="observability.html"><span class="lbl">Previous</span><span class="ttl">Observability</span></a>
+        <a class="next" href="cli.html"><span class="lbl">Next</span><span class="ttl">CLI Reference</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

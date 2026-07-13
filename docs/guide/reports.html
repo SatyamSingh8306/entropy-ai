@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Reports — EntroPy</title>
+  <meta name="description" content="Export evaluation results as HTML, JSON, Markdown, PDF or Jupyter notebooks."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Reports</h1>
+      <p>Turn a results dictionary into a shareable artifact. Use the
+      <code>export_report</code> convenience function or the lower-level
+      <code>export</code> dispatcher.</p>
+
+      <h2>Programmatic export</h2>
+      <pre><code>from entropy import export_report
+
+export_report(results, "html", "report.html")        # html, json, markdown, pdf, jupyter
+export_report(results, "pdf", "report.pdf")          # requires the pdf extra
+export_report(results, "jupyter", "report.ipynb")    # requires the jupyter extra</code></pre>
+
+      <p>Or dispatch explicitly:</p>
+      <pre><code>from entropy.reports import export, to_markdown, to_json
+
+export(results, "markdown", "report.md", title="My Eval")
+print(to_markdown(results))</code></pre>
+
+      <h2>Formats</h2>
+      <table>
+        <thead><tr><th>Format</th><th>Function</th><th>Extra</th></tr></thead>
+        <tbody>
+          <tr><td><code>html</code></td><td><code>to_html</code></td><td>— (includes a metrics bar chart)</td></tr>
+          <tr><td><code>json</code></td><td><code>to_json</code></td><td>—</td></tr>
+          <tr><td><code>markdown</code> / <code>md</code></td><td><code>to_markdown</code></td><td>—</td></tr>
+          <tr><td><code>pdf</code></td><td><code>to_pdf</code></td><td><code>pdf</code> (reportlab)</td></tr>
+          <tr><td><code>jupyter</code> / <code>ipynb</code></td><td><code>to_jupyter</code></td><td><code>jupyter</code> (nbformat)</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Dashboard</h2>
+      <p>For an interactive HTML dashboard with charts, use the dashboard
+      builder (also exposed via <code>entropy ui</code>):</p>
+      <pre><code>from entropy import build_dashboard, serve_dashboard
+
+path = build_dashboard(results, ".entropy_ui")
+serve_dashboard(".entropy_ui", port=8000)</code></pre>
+
+      <div class="callout tip">
+        <h4>CLI</h4>
+        <p><code>entropy report --results r.json --format html --out report.html</code>
+        — or build a live dashboard with <code>entropy ui --serve</code>.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="cli.html"><span class="lbl">Previous</span><span class="ttl">CLI Reference</span></a>
+        <a class="next" href="plugins.html"><span class="lbl">Next</span><span class="ttl">Plugins</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

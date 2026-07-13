@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Core Concepts — EntroPy</title>
+  <meta name="description" content="AgentRun, Trace, Event, Suite and the Monte Carlo evaluation model behind EntroPy."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Core Concepts</h1>
+
+      <p>EntroPy treats agent behavior as a <strong>distribution</strong>, not a
+      single output. The central idea: run an agent many times, record what
+      happened each time, then summarize the distribution with entropy-based
+      metrics.</p>
+
+      <h2>AgentRun</h2>
+      <p>One execution of an agent on a single input. An agent may return an
+      <code>AgentRun</code> directly, or EntroPy wraps a plain return value
+      into one.</p>
+      <table>
+        <thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>run_id</code></td><td><code>str</code></td><td>Unique id for the run</td></tr>
+          <tr><td><code>input</code></td><td><code>Any</code></td><td>The input the agent received</td></tr>
+          <tr><td><code>output</code></td><td><code>Any</code></td><td>The agent's output</td></tr>
+          <tr><td><code>events</code></td><td><code>list[Event]</code></td><td>Recorded behavior (actions, tools, reasoning…)</td></tr>
+          <tr><td><code>cost</code></td><td><code>float</code></td><td>Cost of the run (optional)</td></tr>
+          <tr><td><code>metadata</code></td><td><code>dict</code></td><td>Latency, errors, custom data</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Events</h2>
+      <p>Behavior is captured as a sequence of typed <code>Event</code>s. The
+      built-in event types carry semantic meaning for metrics:</p>
+      <table>
+        <thead><tr><th>Event</th><th><code>type</code></th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td><code>ActionEvent</code></td><td><code>action</code></td><td>Primary action label, entropy, drift</td></tr>
+          <tr><td><code>ReasoningEvent</code></td><td><code>reasoning</code></td><td>Plan quality, consistency</td></tr>
+          <tr><td><code>ToolCallEvent</code></td><td><code>tool</code></td><td>Tool reliability, selection, thrashing</td></tr>
+          <tr><td><code>ObservationEvent</code></td><td><code>observation</code></td><td>Behavior trajectories</td></tr>
+          <tr><td><code>MemoryReadEvent</code> / <code>MemoryWriteEvent</code></td><td><code>memory_read</code> / <code>memory_write</code></td><td>Memory metrics</td></tr>
+          <tr><td><code>ErrorEvent</code></td><td><code>error</code></td><td>Failure / recovery / robustness</td></tr>
+          <tr><td><code>StateTransitionEvent</code></td><td><code>state</code></td><td>Trajectory graph</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Trace &amp; Graph</h2>
+      <p>A <code>Trace</code> collects runs plus an optional behavior graph
+      (<code>Node</code> / <code>Edge</code>). It exposes exporters:
+      <code>json()</code>, <code>df()</code>, <code>graph()</code>,
+      <code>otel()</code>, and <code>zip(path)</code>.</p>
+
+      <h2>Suite &amp; Batch</h2>
+      <p>The <code>Suite</code> runs an agent <code>trials</code> times per case
+      and produces a <code>Batch</code> per input. Each <code>Batch</code>
+      summarizes one input's trials: <code>outputs</code>, <code>behaviors</code>
+      (trajectory signatures), <code>actions</code>, <code>tool_calls</code>,
+      <code>successes</code>, <code>costs</code>, <code>errored</code>,
+      <code>recovered</code>. Metrics consume batches; the suite averages each
+      metric across inputs to produce the final result dictionary.</p>
+
+      <h2>Results dictionary</h2>
+      <p><code>Suite.run()</code> returns a flat <code>dict</code> of metric
+      name → value (or list for <code>confidence_interval</code> and the
+      <code>emergent_behavior</code> / <code>behavior_fingerprint</code>
+      signatures). Numeric values are in <code>[0, 1]</code> where a bound
+      applies.</p>
+
+      <h2>Evaluation layers</h2>
+      <p>Metrics are organized into six evaluation layers
+      (see <a href="metrics.html">Metrics Catalog</a>):</p>
+      <ol>
+        <li><strong>Reasoning</strong> — plan quality, adherence, consistency</li>
+        <li><strong>Tool</strong> — correctness, reliability, selection</li>
+        <li><strong>Execution</strong> — completion, latency, cost, recovery</li>
+        <li><strong>Behavioral</strong> — entropy, variance, drift, loops</li>
+        <li><strong>Robustness</strong> — resilience to failure</li>
+        <li><strong>Drift</strong> — long-term behavior change</li>
+      </ol>
+
+      <nav class="prevnext">
+        <a class="prev" href="quickstart.html"><span class="lbl">Previous</span><span class="ttl">Quickstart</span></a>
+        <a class="next" href="metrics.html"><span class="lbl">Next</span><span class="ttl">Metrics Catalog</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

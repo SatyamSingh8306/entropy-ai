@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CLI Reference — EntroPy</title>
+  <meta name="description" content="The entropy command line: run, test, benchmark, chaos, watch, report and more."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">CLI Reference</h1>
+      <p>The <code>entropy</code> command exposes the full framework. Agents and
+      datasets are referenced as <code>module:attr</code> (e.g.
+      <code>myproj.agents:agent</code>) and file paths respectively.</p>
+
+      <h2>Commands</h2>
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>entropy init</code></td><td>Scaffold a project (agent, dataset, <code>entropy.toml</code>).</td></tr>
+          <tr><td><code>entropy run</code></td><td>Run the Monte Carlo suite.</td></tr>
+          <tr><td><code>entropy test</code></td><td>Regression test against a stored baseline.</td></tr>
+          <tr><td><code>entropy benchmark</code></td><td>Compare multiple agent variants.</td></tr>
+          <tr><td><code>entropy compare</code></td><td>Diff two result JSON files.</td></tr>
+          <tr><td><code>entropy replay</code></td><td>Replay a saved trace / results file.</td></tr>
+          <tr><td><code>entropy dataset</code></td><td>Inspect a dataset file.</td></tr>
+          <tr><td><code>entropy doctor</code></td><td>Check optional dependencies &amp; adapters.</td></tr>
+          <tr><td><code>entropy simulate</code></td><td>Run a simulator (user / env / adversarial).</td></tr>
+          <tr><td><code>entropy chaos</code></td><td>Run fault injection.</td></tr>
+          <tr><td><code>entropy ui</code></td><td>Build / serve the dashboard.</td></tr>
+          <tr><td><code>entropy watch</code></td><td>Live observability over rounds.</td></tr>
+          <tr><td><code>entropy report</code></td><td>Export a report from results JSON.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Examples</h2>
+      <pre><code># Run the suite
+entropy run --agent m:agent --dataset d.json --trials 100 --seed 42
+
+# Regression gate (writes baseline with --update first run)
+entropy test --agent m:agent --dataset d.json --baseline base.json [--update]
+
+# Compare agent variants
+entropy benchmark --agents m:a m:b --dataset d.json
+
+# Fault injection
+entropy chaos --agent m:agent --dataset d.json --faults api_fail,timeout
+
+# Build & serve the dashboard
+entropy ui --agent m:agent --dataset d.json --serve
+
+# Live watching with a heatmap
+entropy watch --agent m:agent --dataset d.json --rounds 10 --heatmap h.png
+
+# Export a report
+entropy report --results r.json --format html --out report.html</code></pre>
+
+      <h2>Common flags</h2>
+      <ul>
+        <li><code>--agent</code> — <code>module:attr</code> callable.</li>
+        <li><code>--dataset</code> — path to a JSON / JSONL / YAML / CSV dataset.</li>
+        <li><code>--trials</code> — number of Monte Carlo runs per case (default 100).</li>
+        <li><code>--seed</code> — RNG seed for reproducibility.</li>
+        <li><code>--out</code> — write results to a file.</li>
+      </ul>
+
+      <div class="callout tip">
+        <h4>Scaffold then run</h4>
+        <p><code>entropy init</code> creates <code>agent.py</code> and
+        <code>dataset.json</code>; edit them, then
+        <code>entropy run --agent agent:agent --dataset dataset.json</code>.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="adapters.html"><span class="lbl">Previous</span><span class="ttl">Framework Adapters</span></a>
+        <a class="next" href="reports.html"><span class="lbl">Next</span><span class="ttl">Reports</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

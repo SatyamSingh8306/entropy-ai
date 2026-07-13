@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Datasets — EntroPy</title>
+  <meta name="description" content="Build datasets from cases and load them from JSON, JSONL, YAML, CSV or HuggingFace."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Datasets</h1>
+      <p>A <code>Dataset</code> is a list of <code>Case</code> objects. Each case
+      defines an input, an expected output (or a custom check), and metadata.</p>
+
+      <h2>Building datasets</h2>
+      <pre><code>from entropy import Dataset, Case
+
+dataset = Dataset([
+    Case(input="q1", expected="A"),
+    Case(input="q2", expected="B"),
+])</code></pre>
+
+      <h3>Custom checks</h3>
+      <p>When <code>expected</code> isn't enough, supply a <code>check</code>
+      callable. It takes the agent output and returns a bool:</p>
+      <pre><code>Case(input="sum?", check=lambda out: out.isdigit() and int(out) > 0)</code></pre>
+
+      <h2>Specialized case types</h2>
+      <table>
+        <thead><tr><th>Case type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>Case</code></td><td>Generic input/expected/check.</td></tr>
+          <tr><td><code>GoldenCase</code></td><td>Known-good pair the agent must reproduce exactly.</td></tr>
+          <tr><td><code>Scenario</code></td><td>Stateful scenario; <code>setup</code> is applied to the environment first.</td></tr>
+          <tr><td><code>BehaviorCase</code></td><td>Checks <em>behavior</em> (not just output) via <code>behavior_check</code>.</td></tr>
+          <tr><td><code>FailureCase</code></td><td>Expects the agent to fail gracefully (success = handled).</td></tr>
+          <tr><td><code>AdversarialCase</code></td><td>Provokes unsafe behavior; carries an <code>attack</code> tag.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Loading from files</h2>
+      <p><code>Dataset</code> provides class-method loaders for several formats:</p>
+      <pre><code>Dataset.from_json("cases.json")      # {"cases": [{"input": ..., "expected": ...}]}
+Dataset.from_jsonl("cases.jsonl")
+Dataset.from_yaml("cases.yaml")      # requires the pyyaml dependency
+Dataset.from_csv("cases.csv")         # columns: input, expected, type
+Dataset.from_hf("squad", split="train")  # requires the hf extra</code></pre>
+      <p>Case records may include a <code>"type"</code> field
+      (<code>case</code>, <code>golden</code>, <code>scenario</code>,
+      <code>behavior</code>, <code>failure</code>, <code>adversarial</code>) to
+      select the right subclass automatically.</p>
+
+      <h2>Saving</h2>
+      <pre><code>dataset.save("cases.json")</code></pre>
+
+      <div class="callout tip">
+        <h4>CLI</h4>
+        <p>Inspect any dataset without code: <code>entropy dataset --path cases.json</code>.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="tracing.html"><span class="lbl">Previous</span><span class="ttl">Tracing</span></a>
+        <a class="next" href="simulation.html"><span class="lbl">Next</span><span class="ttl">Simulation</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

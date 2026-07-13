@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Tracing — EntroPy</title>
+  <meta name="description" content="Instrument agents with trace(), event() and instrument() to capture behavior."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Tracing</h1>
+      <p>Tracing records an agent's <strong>behavior</strong> as a stream of
+      typed events, which is what powers EntroPy's behavioral, tool, reasoning
+      and drift metrics. There are three ways to capture events.</p>
+
+      <h2>Manual: <code>trace()</code> + <code>event()</code></h2>
+      <p>Open a trace context and emit events as the agent runs:</p>
+      <pre><code>from entropy import trace, event
+
+with trace() as t:
+    event("action", "tool:search", query="weather")
+    event("observation", "result", n=12)
+    event("action", "reply", text="It will rain.")
+# t.events holds the captured Event objects</code></pre>
+
+      <h2>Automatic: <code>instrument()</code></h2>
+      <p>Wrap any callable so it returns an <code>AgentRun</code> with an
+      <code>input</code>/<code>output</code> event pair. If the object matches a
+      registered framework adapter, it is routed there automatically.</p>
+      <pre><code>from entropy import instrument
+
+wrapped = instrument(my_agent)        # returns an AgentRun per call
+run = wrapped("book a flight")
+print(run.output, run.events)</code></pre>
+      <p>Exceptions are captured rather than raised — the resulting
+      <code>AgentRun</code> carries an <code>ErrorEvent</code> and
+      <code>metadata["error"]</code>, so a flaky agent degrades gracefully
+      instead of crashing the suite.</p>
+
+      <h2>Returning a rich run</h2>
+      <p>An agent may return an <code>AgentRun</code> directly, or a dict with
+      <code>output</code>, <code>events</code>, <code>cost</code> and
+      <code>metadata</code>:</p>
+      <pre><code>from entropy import AgentRun, ToolCallEvent
+
+def agent(inp):
+    return AgentRun(
+        run_id="",
+        input=inp,
+        output="done",
+        events=[ToolCallEvent("search", {"q": inp})],
+        cost=0.002,
+        metadata={"latency": 0.31},
+    )</code></pre>
+
+      <h2>Typed events</h2>
+      <p>Use the typed subclasses for clearer semantics:</p>
+      <pre><code>from entropy import (ActionEvent, ReasoningEvent, ToolCallEvent,
+                     ObservationEvent, MemoryWriteEvent, ErrorEvent,
+                     StateTransitionEvent)
+
+events = [
+    ReasoningEvent("plan:search_then_reply"),
+    ToolCallEvent("search", {"q": "paris"}),
+    MemoryWriteEvent("facts", {"correct": True}),
+    StateTransitionEvent("idle->working"),
+]</code></pre>
+
+      <h2>Accessing the active trace</h2>
+      <p><code>current_trace()</code> builds a <code>Trace</code> from events
+      captured so far (best-effort), useful for ad-hoc inspection.</p>
+
+      <nav class="prevnext">
+        <a class="prev" href="metrics.html"><span class="lbl">Previous</span><span class="ttl">Metrics Catalog</span></a>
+        <a class="next" href="datasets.html"><span class="lbl">Next</span><span class="ttl">Datasets</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Installation — EntroPy</title>
+  <meta name="description" content="How to install EntroPy and its optional extras."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Installation</h1>
+
+      <p>EntroPy requires Python ≥ 3.9. Install the core package from a checkout or sdist:</p>
+
+      <pre><code>pip install -e .                       # core deps only
+pip install "entropy-ai[langchain]"    # optional: a framework adapter
+pip install "entropy-ai[pdf,jupyter]"  # optional: PDF / Jupyter reports</code></pre>
+
+      <h2>Core dependencies</h2>
+      <p>Always installed:</p>
+      <table>
+        <thead><tr><th>Package</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>pandas</code></td><td>DataFrames via <code>Trace.df()</code></td></tr>
+          <tr><td><code>matplotlib</code></td><td>Charts &amp; the dashboard</td></tr>
+          <tr><td><code>jinja2</code></td><td>HTML reports &amp; dashboard</td></tr>
+          <tr><td><code>rich</code></td><td><code>Watcher</code> live TUI</td></tr>
+          <tr><td><code>pyyaml</code></td><td>YAML dataset loading</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Optional extras</h2>
+      <table>
+        <thead><tr><th>Extra</th><th>Enables</th></tr></thead>
+        <tbody>
+          <tr><td><code>pdf</code></td><td>PDF report export (reportlab)</td></tr>
+          <tr><td><code>jupyter</code></td><td>Jupyter notebook reports (nbformat)</td></tr>
+          <tr><td><code>hf</code></td><td>HuggingFace dataset loading (datasets)</td></tr>
+          <tr><td><code>langchain</code></td><td>LangChain adapter</td></tr>
+          <tr><td><code>langgraph</code></td><td>LangGraph adapter</td></tr>
+          <tr><td><code>openai</code></td><td>OpenAI Agents adapter + LLM user sim</td></tr>
+          <tr><td><code>crewai</code></td><td>CrewAI adapter</td></tr>
+          <tr><td><code>pydanticai</code></td><td>PydanticAI adapter</td></tr>
+          <tr><td><code>autogen</code></td><td>AutoGen adapter</td></tr>
+          <tr><td><code>google-adk</code></td><td>Google ADK adapter</td></tr>
+          <tr><td><code>mcp</code></td><td>MCP adapter</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <h4>Check your environment</h4>
+        <p>Run <code>entropy doctor</code> to see which optional dependencies and framework adapters are available in your environment.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="../index.html"><span class="lbl">Previous</span><span class="ttl">Introduction</span></a>
+        <a class="next" href="quickstart.html"><span class="lbl">Next</span><span class="ttl">Quickstart</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

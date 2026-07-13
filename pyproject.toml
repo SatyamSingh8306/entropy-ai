@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entropy-ai"
+version = "0.1.0"
+description = "Behavioral evaluation framework for non-deterministic AI agents"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas",
+    "matplotlib",
+    "jinja2",
+    "rich",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+pdf = ["reportlab"]
+jupyter = ["nbformat"]
+hf = ["datasets"]
+langchain = ["langchain"]
+langgraph = ["langgraph"]
+openai = ["openai", "openai-agents"]
+crewai = ["crewai"]
+pydanticai = ["pydantic-ai"]
+autogen = ["autogen"]
+google-adk = ["google-adk"]
+mcp = ["mcp"]
+
+[tool.setuptools.packages.find]
+include = ["entropy*"]
+
+[project.scripts]
+entropy = "entropy.cli.main:main"

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Quickstart — EntroPy</title>
+  <meta name="description" content="Run your first Monte Carlo behavioral evaluation with EntroPy."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Quickstart</h1>
+
+      <p>EntroPy evaluates an agent by running it many times and measuring the
+      <em>distribution</em> of its behavior. This takes three objects:</p>
+      <ul>
+        <li>an <strong>agent</strong> — any callable <code>agent(input) -&gt; output</code>,</li>
+        <li>a <strong>dataset</strong> — a list of <code>Case</code>s, and</li>
+        <li>a <strong>Suite</strong> — the Monte Carlo runner.</li>
+      </ul>
+
+      <h2>1. Define an agent</h2>
+      <p>An agent is any callable. It may return a plain value, an
+      <code>AgentRun</code>, or a dict with <code>output</code>/<code>events</code>/<code>cost</code>.</p>
+
+      <pre><code>import random
+
+def my_agent(inp):
+    r = random.random()
+    if r < 0.7:
+        return "A"
+    if r < 0.9:
+        return "B"
+    return "C"</code></pre>
+
+      <h2>2. Build a dataset</h2>
+      <pre><code>from entropy import Dataset, Case
+
+dataset = Dataset([
+    Case(input="q1", expected="A"),
+    Case(input="q2", expected="B"),
+])</code></pre>
+
+      <h2>3. Run the suite</h2>
+      <pre><code>from entropy import Suite
+
+results = Suite(seed=42).run(my_agent, dataset, trials=100)
+print(results)</code></pre>
+
+      <p>This prints the canonical metric set — <code>success_rate</code>,
+      <code>behavioral_entropy</code>, <code>drift_score</code>,
+      <code>recovery_score</code>, and more (50+ metrics total).</p>
+
+      <div class="callout tip">
+        <h4>Reproducibility</h4>
+        <p>Always pass a fixed <code>seed</code> to <code>Suite</code> so evaluations are reproducible and comparable across runs and CI.</p>
+      </div>
+
+      <h2>4. Assert stability (regression gate)</h2>
+      <p>Use <code>assert_stable</code> as a guard in tests or CI:</p>
+      <pre><code>from entropy import assert_stable
+
+assert_stable(
+    results,
+    success_rate__gt=0.3,
+    behavioral_entropy__gt=0.0,   # non-deterministic -> non-zero entropy
+    drift_score__lt=0.2,
+)</code></pre>
+      <p>Threshold operators are <code>__gt</code>, <code>__gte</code>,
+      <code>__lt</code>, <code>__lte</code>, or exact equality when omitted.</p>
+
+      <h2>What's next</h2>
+      <ul>
+        <li><a href="concepts.html">Core Concepts</a> — understand <code>AgentRun</code>, <code>Trace</code> and the evaluation model.</li>
+        <li><a href="metrics.html">Metrics Catalog</a> — every metric EntroPy computes.</li>
+        <li><a href="tracing.html">Tracing</a> — capture detailed behavior.</li>
+      </ul>
+
+      <nav class="prevnext">
+        <a class="prev" href="installation.html"><span class="lbl">Previous</span><span class="ttl">Installation</span></a>
+        <a class="next" href="concepts.html"><span class="lbl">Next</span><span class="ttl">Core Concepts</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

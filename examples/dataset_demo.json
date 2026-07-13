@@ -1,0 +1,6 @@
+{
+  "cases": [
+    {"input": "q1", "expected": "A"},
+    {"input": "q2", "expected": "B"}
+  ]
+}

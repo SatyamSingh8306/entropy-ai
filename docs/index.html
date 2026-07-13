@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EntroPy — Behavioral evaluation for non-deterministic AI agents</title>
+  <meta name="description" content="EntroPy measures uncertainty, drift, stochastic behavior and emergent failures in AI agents via Monte Carlo evaluation and entropy-based metrics."/>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <link rel="icon" href="assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='.';</script>
+</head>
+<body>
+  <section class="hero">
+    <span class="badge">v0.1.0 · local-first · zero vendor lock-in</span>
+    <h1>Behavioral evaluation<br/>for non-deterministic AI agents</h1>
+    <p class="lead">
+      EntroPy measures what other frameworks miss: <strong>uncertainty, drift,
+      stochastic behavior, and emergent failures</strong> — via Monte Carlo
+      evaluation over repeated runs and entropy-based metrics.
+      Framework-agnostic, runs locally, no vendor lock-in.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="guide/quickstart.html">Get Started →</a>
+      <a class="btn" href="guide/concepts.html">Core Concepts</a>
+      <a class="btn" href="https://github.com/anomalyco/entropy-ai">GitHub ↗</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature"><span class="ico">🎲</span><h3>Monte Carlo by default</h3><p>Run any agent N times and aggregate behavior across trials — not a single lucky pass.</p></div>
+    <div class="feature"><span class="ico">📊</span><h3>50+ entropy metrics</h3><p>Success, reliability, behavioral &amp; trajectory entropy, drift, robustness, safety and more.</p></div>
+    <div class="feature"><span class="ico">🌊</span><h3>Drift detection</h3><p>Track how an agent's behavior distribution shifts across trials and over time.</p></div>
+    <div class="feature"><span class="ico">🔥</span><h3>Chaos engineering</h3><p>Inject faults (API failures, timeouts, tool crashes) and measure resilience.</p></div>
+    <div class="feature"><span class="ico">🧩</span><h3>Framework agnostic</h3><p>Adapters for LangChain, LangGraph, OpenAI, CrewAI, PydanticAI, AutoGen, Google ADK, MCP — all lazy.</p></div>
+    <div class="feature"><span class="ico">🖥️</span><h3>Local-first</h3><p>Reports, dashboards, observability and a CLI — everything runs on your machine.</p></div>
+  </section>
+
+  <section class="home-code">
+    <div class="grid">
+      <div>
+        <h3>Install</h3>
+        <pre><code>pip install -e .
+pip install "entropy-ai[langchain]"   # optional adapter
+pip install "entropy-ai[pdf,jupyter]" # optional reports</code></pre>
+      </div>
+      <div>
+        <h3>Your first evaluation</h3>
+        <pre><code>from entropy import Suite, Dataset, Case
+
+def my_agent(inp): ...
+    # return an output, an AgentRun, or dict with events
+
+dataset = Dataset([Case(input="q1", expected="correct")])
+results = Suite(seed=42).run(my_agent, dataset, trials=100)
+print(results)  # 50+ metrics</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>EntroPy — behavioral evaluation for non-deterministic AI agents.</p>
+    <p><a href="https://github.com/anomalyco/entropy-ai">GitHub</a> · <a href="api.html">API Reference</a> · <a href="guide/cli.html">CLI</a> · <a href="guide/metrics.html">Metrics</a></p>
+    <p>Static documentation site · deployable to GitHub Pages.</p>
+  </footer>
+
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

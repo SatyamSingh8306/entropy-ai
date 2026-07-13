@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Examples — EntroPy</title>
+  <meta name="description" content="End-to-end examples: evaluating a stochastic agent and asserting stability."/>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <link rel="icon" href="assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='.';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Examples</h1>
+
+      <h2>Evaluating a stochastic agent</h2>
+      <p>A non-deterministic agent that mostly returns <code>"A"</code> but
+      sometimes <code>"B"</code> or <code>"C"</code>:</p>
+      <pre><code>import random
+from entropy import Suite, Dataset, Case, assert_stable
+
+def fickle_agent(inp):
+    r = random.random()
+    if r < 0.6:
+        return "A"
+    if r < 0.85:
+        return "B"
+    return "C"
+
+dataset = Dataset([
+    Case(input="q1", expected="A"),
+    Case(input="q2", expected="B"),
+])
+results = Suite(seed=42).run(fickle_agent, dataset, trials=300)
+
+for k, v in results.items():
+    print(f"  {k}: {v}")
+
+assert_stable(
+    results,
+    success_rate__gt=0.3,
+    behavioral_entropy__gt=0.0,   # non-deterministic -> non-zero entropy
+    drift_score__lt=0.2,
+)
+print("\nassert_stable: OK")</code></pre>
+      <p>This mirrors <code>examples/basic.py</code> in the repository.</p>
+
+      <h2>Tracing a tool-using agent</h2>
+      <pre><code>from entropy import trace, event, Suite, Dataset, Case
+
+def agent(inp):
+    with trace():
+        event("action", "tool:search", query=inp)
+        event("observation", "top_result", n=5)
+        event("action", "reply")
+    return f"searched: {inp}"
+
+dataset = Dataset([Case(input="weather", expected=None)])
+res = Suite(seed=0).run(agent, dataset, trials=20)
+print(res["tool_reliability"], res["behavioral_entropy"])</code></pre>
+
+      <h2>Chaos resilience gate</h2>
+      <pre><code>from entropy import ChaosRunner, assert_stable
+
+cr = ChaosRunner(seed=0)
+out = cr.run(agent, dataset, ["api_fail", "timeout"], trials=50)
+base = out["baseline"]["success_rate"]
+for fault, r in out["faults"].items():
+    print(f"{fault}: success dropped {base - r['success_rate']:.3f}, "
+          f"drift={r['drift_score']:.3f}")</code></pre>
+
+      <h2>CLI end-to-end</h2>
+      <pre><code># 1. scaffold
+entropy init
+
+# 2. edit agent.py / dataset.json, then run
+entropy run --agent agent:agent --dataset dataset.json --trials 200
+
+# 3. lock a baseline, then guard it in CI
+entropy test --agent agent:agent --dataset dataset.json --baseline base.json --update
+entropy test --agent agent:agent --dataset dataset.json --baseline base.json</code></pre>
+
+      <div class="callout tip">
+        <h4>Run the bundled examples</h4>
+        <p><code>python examples/basic.py</code> and
+        <code>python examples/agent_demo.py</code> ship with the repo.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="api.html"><span class="lbl">Previous</span><span class="ttl">API Reference</span></a>
+        <a class="next" href="guide/installation.html"><span class="lbl">Next</span><span class="ttl">Installation</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="index.html">Home</a> · <a href="api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>

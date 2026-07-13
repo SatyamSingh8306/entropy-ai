@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Metrics Catalog — EntroPy</title>
+  <meta name="description" content="Every metric EntroPy computes: statistical, entropy, behavioral, tool, execution, memory, multi-agent, drift and safety."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Metrics Catalog</h1>
+      <p>EntroPy ships <strong>50+ metrics</strong>, organized into evaluation
+      layers. The <code>Suite</code> computes a canonical subset by default
+      (marked <span class="layer-tag">default</span>); pass
+      <code>metrics=[...]</code> to <code>Suite</code> to select any subset, or
+      call <code>entropy.default_metrics()</code> to list the canonical set.</p>
+
+      <div class="callout tip">
+        <h4>Bounds</h4>
+        <p>Most metrics return a value in <code>[0, 1]</code>. Higher is not always
+        better — e.g. <code>drift_score</code>, <code>failure_rate</code> and
+        <code>loop_detection</code> are “lower is better”.</p>
+      </div>
+
+      <h2 id="statistical">Statistical <span class="layer-tag">Layer · core</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">success_rate <span class="layer-tag">default</span></div><div class="mdesc">Fraction of trials that succeeded.</div></div>
+        <div class="metric-card"><div class="mname">reliability <span class="layer-tag">default</span></div><div class="mdesc">Mean success across trials.</div></div>
+        <div class="metric-card"><div class="mname">variance <span class="layer-tag">default</span></div><div class="mdesc">Variance of per-trial cost.</div></div>
+        <div class="metric-card"><div class="mname">robustness <span class="layer-tag">default</span></div><div class="mdesc">Mean recovery rate across trials.</div></div>
+        <div class="metric-card"><div class="mname">confidence_interval <span class="layer-tag">default</span></div><div class="mdesc">95% CI for success_rate as [lo, hi] (Wald approx).</div></div>
+        <div class="metric-card"><div class="mname">entropy <span class="layer-tag">default</span></div><div class="mdesc">Normalized entropy over primary actions.</div></div>
+        <div class="metric-card"><div class="mname">stability_index <span class="layer-tag">default</span></div><div class="mdesc">1 − normalized variance of the success outcome.</div></div>
+        <div class="metric-card"><div class="mname">reliability_score</div><div class="mdesc">success_rate × stability_index.</div></div>
+      </div>
+
+      <h2 id="entropy">Entropy</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">action_entropy <span class="layer-tag">default</span></div><div class="mdesc">H(actions): randomness of atomic actions.</div></div>
+        <div class="metric-card"><div class="mname">trajectory_entropy <span class="layer-tag">default</span></div><div class="mdesc">H(trajectory): variability of full execution trajectories.</div></div>
+        <div class="metric-card"><div class="mname">tool_entropy <span class="layer-tag">default</span></div><div class="mdesc">H(tool_usage): diversity of tool selection.</div></div>
+        <div class="metric-card"><div class="mname">robustness_entropy</div><div class="mdesc">H(failure distribution): entropy over success/fail/error.</div></div>
+        <div class="metric-card"><div class="mname">information_gain</div><div class="mdesc">Reduction in action uncertainty given success.</div></div>
+        <div class="metric-card"><div class="mname">exploration_efficiency <span class="layer-tag">default</span></div><div class="mdesc">reward / entropy over actions.</div></div>
+      </div>
+
+      <h2 id="behavioral">Behavioral <span class="layer-tag">Layer 4</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">behavioral_entropy <span class="layer-tag">default</span></div><div class="mdesc">Normalized entropy of the primary action per trial.</div></div>
+        <div class="metric-card"><div class="mname">behavioral_variance <span class="layer-tag">default</span></div><div class="mdesc">Variance of the per-trial binary outcome.</div></div>
+        <div class="metric-card"><div class="mname">trajectory_diversity <span class="layer-tag">default</span></div><div class="mdesc">Mean normalized Levenshtein distance across trajectory pairs.</div></div>
+        <div class="metric-card"><div class="mname">loop_detection</div><div class="mdesc">Fraction of trials whose trajectory repeats a state.</div></div>
+        <div class="metric-card"><div class="mname">goal_stability <span class="layer-tag">default</span></div><div class="mdesc">1 − drift; stability of behavior across the trial sequence.</div></div>
+        <div class="metric-card"><div class="mname">exploration_efficiency_metric</div><div class="mdesc">reward / entropy over actions.</div></div>
+        <div class="metric-card"><div class="mname">emergent_behavior <span class="layer-tag">default</span></div><div class="mdesc">Behaviors appearing in ≤5% of trials (rare, potentially emergent).</div></div>
+      </div>
+
+      <h2 id="reasoning">Reasoning <span class="layer-tag">Layer 1</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">plan_quality</div><div class="mdesc">Fraction of trials that produced a reasoning/plan event.</div></div>
+        <div class="metric-card"><div class="mname">plan_adherence</div><div class="mdesc">Fraction of trials whose final action matches a stated plan prefix.</div></div>
+        <div class="metric-card"><div class="mname">reasoning_consistency</div><div class="mdesc">1 − normalized entropy of reasoning step names.</div></div>
+        <div class="metric-card"><div class="mname">planning_stability</div><div class="mdesc">1 − drift of reasoning labels across trials.</div></div>
+        <div class="metric-card"><div class="mname">goal_decomposition</div><div class="mdesc">Average number of distinct sub-steps per trial (normalized).</div></div>
+      </div>
+
+      <h2 id="tool">Tool <span class="layer-tag">Layer 2</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">tool_correctness</div><div class="mdesc">Success fraction on tool-using trials.</div></div>
+        <div class="metric-card"><div class="mname">argument_correctness</div><div class="mdesc">Fraction of tool calls carrying non-empty arguments.</div></div>
+        <div class="metric-card"><div class="mname">tool_reliability <span class="layer-tag">default</span></div><div class="mdesc">Success rate over tool-using trials.</div></div>
+        <div class="metric-card"><div class="mname">tool_selection</div><div class="mdesc">Normalized entropy of tool selection.</div></div>
+        <div class="metric-card"><div class="mname">tool_thrashing</div><div class="mdesc">Fraction of trials that called the same tool repeatedly.</div></div>
+        <div class="metric-card"><div class="mname">hallucinated_tool</div><div class="mdesc">Fraction of tool calls flagged as hallucinated.</div></div>
+      </div>
+
+      <h2 id="execution">Execution <span class="layer-tag">Layer 3</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">task_completion</div><div class="mdesc">Fraction of trials that completed successfully.</div></div>
+        <div class="metric-card"><div class="mname">step_efficiency</div><div class="mdesc">Mean efficiency 1/(1+events) — fewer steps = more efficient.</div></div>
+        <div class="metric-card"><div class="mname">latency</div><div class="mdesc">Mean latency in seconds (per-trial metadata, else cost proxy).</div></div>
+        <div class="metric-card"><div class="mname">cost</div><div class="mdesc">Mean cost per trial.</div></div>
+        <div class="metric-card"><div class="mname">retry_rate</div><div class="mdesc">Fraction of trials that contained a retry event.</div></div>
+        <div class="metric-card"><div class="mname">failure_rate</div><div class="mdesc">1 − success_rate.</div></div>
+        <div class="metric-card"><div class="mname">recovery_score <span class="layer-tag">default</span></div><div class="mdesc">Fraction of errored trials that still succeeded.</div></div>
+        <div class="metric-card"><div class="mname">cost_stability</div><div class="mdesc">1 − coefficient of variation of per-trial cost.</div></div>
+      </div>
+
+      <h2 id="memory">Memory</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">memory_correctness</div><div class="mdesc">Fraction of memory writes flagged correct.</div></div>
+        <div class="metric-card"><div class="mname">memory_pollution</div><div class="mdesc">Fraction of memory writes flagged polluting/stale.</div></div>
+        <div class="metric-card"><div class="mname">memory_recall</div><div class="mdesc">Success on trials with memory reads.</div></div>
+        <div class="metric-card"><div class="mname">context_dependency</div><div class="mdesc">1 − norm_entropy(actions): rigidity across varied inputs.</div></div>
+      </div>
+
+      <h2 id="multiagent">Multi-agent</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">coordination</div><div class="mdesc">Success on trials involving a handoff/delegate event.</div></div>
+        <div class="metric-card"><div class="mname">communication</div><div class="mdesc">Mean number of message events per trial.</div></div>
+        <div class="metric-card"><div class="mname">delegation</div><div class="mdesc">Fraction of trials that delegated work.</div></div>
+        <div class="metric-card"><div class="mname">consensus</div><div class="mdesc">1 − normalized entropy of outcomes.</div></div>
+        <div class="metric-card"><div class="mname">deadlock</div><div class="mdesc">Fraction of trials hitting a deadlock/timeout event.</div></div>
+      </div>
+
+      <h2 id="drift">Drift <span class="layer-tag">Layer 6</span></h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">drift_score <span class="layer-tag">default</span></div><div class="mdesc">Jensen-Shannon drift of the behavior distribution (first vs second half).</div></div>
+        <div class="metric-card"><div class="mname">trajectory_drift</div><div class="mdesc">Drift over full trajectory signatures.</div></div>
+        <div class="metric-card"><div class="mname">tool_usage_drift</div><div class="mdesc">Drift of the tool-usage distribution.</div></div>
+        <div class="metric-card"><div class="mname">cost_drift</div><div class="mdesc">Normalized absolute drift in mean cost.</div></div>
+        <div class="metric-card"><div class="mname">behavior_fingerprint</div><div class="mdesc">Stable signature of the behavior distribution (top behaviors).</div></div>
+      </div>
+
+      <h2 id="safety">Safety</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="mname">prompt_injection</div><div class="mdesc">Rate of outputs that look like a prompt injection (lower = safer).</div></div>
+        <div class="metric-card"><div class="mname">instruction_override</div><div class="mdesc">Rate of attempts to override system instructions.</div></div>
+        <div class="metric-card"><div class="mname">pii</div><div class="mdesc">Rate of trials leaking PII (email/phone) in output.</div></div>
+        <div class="metric-card"><div class="mname">toxicity</div><div class="mdesc">Rate of trials producing toxic language.</div></div>
+        <div class="metric-card"><div class="mname">data_leakage</div><div class="mdesc">Rate of trials leaking secret-looking material.</div></div>
+      </div>
+
+      <div class="callout">
+        <h4>Custom metrics</h4>
+        <p>Add your own with the <code>@entropy.metric</code> decorator — see
+        <a href="plugins.html">Plugins</a>. Each metric implements
+        <code>compute(self, batch) -&gt; Any</code> and is automatically picked
+        up by the registry.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="concepts.html"><span class="lbl">Previous</span><span class="ttl">Core Concepts</span></a>
+        <a class="next" href="tracing.html"><span class="lbl">Next</span><span class="ttl">Tracing</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

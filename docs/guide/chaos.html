@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Chaos Engineering — EntroPy</title>
+  <meta name="description" content="Inject faults (API failures, timeouts, tool crashes) and measure behavioral drift."/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Chaos Engineering</h1>
+      <p><code>ChaosRunner</code> runs your agent under a clean baseline and then
+      under each requested fault, so you can measure how behavior <em>drifts</em>
+      when things go wrong.</p>
+
+      <h2>Faults</h2>
+      <p>Eight fault types are available (all wrapped as agent decorators):</p>
+      <table>
+        <thead><tr><th>Fault</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>api_fail</code></td><td>Raises a simulated API failure.</td></tr>
+          <tr><td><code>timeout</code></td><td>Raises a timeout error.</td></tr>
+          <tr><td><code>rate_limit</code></td><td>Raises a 429 rate-limit error.</td></tr>
+          <tr><td><code>network_delay</code></td><td>Raises a connection-reset error.</td></tr>
+          <tr><td><code>tool_crash</code></td><td>Marks tool calls as crashed.</td></tr>
+          <tr><td><code>memory_corrupt</code></td><td>Pollutes memory writes.</td></tr>
+          <tr><td><code>token_limit</code></td><td>Truncates the output.</td></tr>
+          <tr><td><code>malformed_output</code></td><td>Returns <code>[[MALFORMED]]</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Running chaos</h2>
+      <pre><code>from entropy import ChaosRunner
+
+cr = ChaosRunner(seed=0)
+result = cr.run(agent, dataset, ["api_fail", "timeout"], trials=50)
+print(cr.summary(result))</code></pre>
+      <p><code>result</code> contains <code>"baseline"</code> and a
+      <code>"faults"</code> dict keyed by fault name. Each entry is a full
+      results dictionary, so you can diff <code>success_rate</code>,
+      <code>drift_score</code>, <code>recovery_score</code>, etc.</p>
+
+      <h2>Fine-grained injection</h2>
+      <p>Inject a single fault manually with a probability and seed:</p>
+      <pre><code>from entropy import chaos_inject, chaos_available
+
+print(chaos_available())   # list of fault names
+faulty = chaos_inject(agent, "tool_crash", p=0.3, seed=1)</code></pre>
+
+      <div class="callout warn">
+        <h4>Interpretation</h4>
+        <p>A large jump in <code>drift_score</code> or <code>failure_rate</code>
+        under a fault signals brittle behavior. Pair chaos with
+        <code>assert_stable</code> thresholds for a resilience gate in CI.</p>
+      </div>
+
+      <nav class="prevnext">
+        <a class="prev" href="simulation.html"><span class="lbl">Previous</span><span class="ttl">Simulation</span></a>
+        <a class="next" href="observability.html"><span class="lbl">Next</span><span class="ttl">Observability</span></a>
+      </nav>
+    </main>
+  </div>
+  <footer class="footer">
+    <p>EntroPy · <a href="../index.html">Home</a> · <a href="../api.html">API</a> · <a href="https://github.com/anomalyco/entropy-ai">GitHub</a></p>
+  </footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
