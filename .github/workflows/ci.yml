@@ -15,6 +15,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
-        run: pip install -e ".[pdf,jupyter]"
+        run: pip install -e ".[pdf,jupyter]" pytest
       - name: Run tests
-        run: pytest -q
+        run: python -m pytest -q

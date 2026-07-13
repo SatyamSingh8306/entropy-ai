@@ -71,7 +71,7 @@
       '<div class="search-results" id="search-results"></div>' +
     '</div>' +
     '<button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">☾</button>' +
-    '<a class="icon-btn" href="https://github.com/anomalyco/entropy-ai" aria-label="GitHub" title="GitHub">↗</a>';
+    '<a class="icon-btn" href="https://github.com/SatyamSingh8306/entropy-ai" aria-label="GitHub" title="GitHub">↗</a>';
   document.body.prepend(header);
 
   document.getElementById("theme-toggle").addEventListener("click", function () {
@@ -154,3 +154,4 @@
     .then(function (data) { INDEX = data || []; })
     .catch(function () { INDEX = []; });
 })();
+
