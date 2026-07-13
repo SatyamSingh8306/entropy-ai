@@ -5,6 +5,7 @@ import random
 from typing import Any, Callable, Iterable, List, Optional
 
 from ..core.models import AgentRun, ErrorEvent
+from ..datasets.cases import Case, make_case
 from ..metrics import Batch, default_metrics, get_metric
 
 _OPS = {
@@ -29,11 +30,46 @@ class Suite:
         dataset: Iterable,
         trials: int = 100,
         extractor: Optional[Callable[[AgentRun], List[str]]] = None,
+        expected: Optional[Iterable] = None,
+        check: Optional[Callable] = None,
     ) -> dict:
         rng = random.Random(self.seed)
+        cases = self._as_cases(dataset, expected=expected, check=check)
         self.batches = [self._run_one(agent, case, trials, rng, extractor)
-                        for case in dataset]
+                        for case in cases]
         return self._aggregate(self.batches)
+
+    # --- input normalization (developer-friendly defaults) -----------------
+    @staticmethod
+    def _as_cases(items, check=None, expected=None) -> List[Case]:
+        """Accept whatever is convenient; always hand ``_run_one`` real Cases.
+
+        ``items`` may be: a ``Dataset``/list of ``Case``, a list of raw inputs,
+        a single raw input, or a ``{input: expected}`` dict. ``expected`` (a
+        parallel iterable) or ``check`` apply a shared success criterion to raw
+        inputs. ``Case``/``Dataset`` callers keep full control.
+        """
+        if isinstance(items, str):
+            items = [items]
+        if isinstance(items, Case):
+            return [items]
+        if isinstance(items, dict):
+            return [Case(input=k, expected=v, check=check) for k, v in items.items()]
+        out: List[Case] = []
+        exp_iter = iter(expected) if expected is not None else None
+        for it in items:
+            if isinstance(it, Case):
+                out.append(it)
+            elif isinstance(it, dict):
+                c = make_case(it)
+                if check is not None and c.check is None:
+                    c = Case(input=c.input, expected=c.expected, check=check,
+                             metadata=c.metadata)
+                out.append(c)
+            else:
+                exp = next(exp_iter) if exp_iter is not None else None
+                out.append(Case(input=it, expected=exp, check=check))
+        return out
 
     # --- per-input Monte Carlo --------------------------------------------
     def _run_one(self, agent, case, trials: int, rng, extractor) -> Batch:
@@ -113,6 +149,28 @@ class Suite:
             else:
                 out[m] = sum(vals) / len(vals)
         return out
+
+
+def evaluate(
+    agent: Callable,
+    inputs,
+    *,
+    trials: int = 100,
+    seed: int = 0,
+    metrics: Optional[List[str]] = None,
+    expected: Optional[Iterable] = None,
+    check: Optional[Callable] = None,
+) -> dict:
+    """One-line entry point for the common case.
+
+    ``inputs`` is a list of raw inputs, a ``{input: expected}`` dict, or a
+    ``Dataset``/list of ``Case``. ``expected``/``check`` set a shared success
+    criterion; omit them and success = "didn't error" (see ``Case.is_success``).
+
+    >>> evaluate(my_agent, ["q1", "q2"], trials=50)
+    """
+    return Suite(seed=seed, metrics=metrics).run(
+        agent, inputs, trials=trials, expected=expected, check=check)
 
 
 def assert_stable(results: dict, **thresholds: float) -> bool:

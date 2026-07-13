@@ -16,7 +16,8 @@
 
       <p>EntroPy requires Python ≥ 3.9. Install the core package from a checkout or sdist:</p>
 
-      <pre><code>pip install -e .                       # core deps only
+      <pre><code>pip install entropy-ai                # users: install from PyPI
+pip install -e .                       # contributors: editable install from the repo
 pip install "entropy-ai[langchain]"    # optional: a framework adapter
 pip install "entropy-ai[pdf,jupyter]"  # optional: PDF / Jupyter reports</code></pre>
 
@@ -57,7 +58,7 @@ pip install "entropy-ai[pdf,jupyter]"  # optional: PDF / Jupyter reports</code><
       <pre><code># 1. environment
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -e .
+pip install entropy-ai
 
 # 2. agent.py
 cat > agent.py <<'PY'
