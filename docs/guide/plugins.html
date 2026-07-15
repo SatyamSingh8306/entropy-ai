@@ -62,6 +62,32 @@ my_plugin = "my_pkg.plugin"</code></pre>
       <pre><code>from entropy import discover
 print(discover())   # names of loaded plugin modules</code></pre>
 
+      <h2>Built-in metric plugins</h2>
+      <p>EntroPy ships a large registry of metric plugins. List them, see the
+      defaults, and pick a subset to compute:</p>
+      <pre><code>from entropy.metrics import default_metrics, _REGISTRY
+
+print(sorted(_REGISTRY))        # every registered metric plugin
+print(default_metrics())        # the canonical set computed by Suite
+
+from entropy import Suite
+Suite(seed=42, metrics=["loop_detection", "cost_stability",
+                        "reliability_score"]).run(agent, ds, trials=50)</code></pre>
+      <p>Each metric is a <code>@metric</code>-decorated class implementing
+      <code>compute(self, batch)</code>. Behavioral metrics (e.g.
+      <code>behavioral_entropy</code>, <code>loop_detection</code>,
+      <code>goal_stability</code>) measure action/trajectory diversity, while
+      execution metrics (e.g. <code>success_rate</code>, <code>cost</code>,
+      <code>latency</code>) measure outcomes.</p>
+
+      <h2>Adapter &amp; exporter plugins</h2>
+      <p>Adapters for LangChain, LangGraph, OpenAI, CrewAI, PydanticAI, AutoGen,
+      Google ADK, MCP and custom agents each live in their own module under
+      <code>entropy/integrations/</code> and are reachable via
+      <code>from_*</code> helpers or <code>find_adapter</code> — see
+      <a href="adapters.html">Framework Adapters</a> for runnable code per
+      framework. Custom exporters register the same way as metrics above.</p>
+
       <nav class="prevnext">
         <a class="prev" href="reports.html"><span class="lbl">Previous</span><span class="ttl">Reports</span></a>
         <a class="next" href="../api.html"><span class="lbl">Next</span><span class="ttl">API Reference</span></a>

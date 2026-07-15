@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "entropy-ai"
-version = "0.1.1"
+version = "0.1.3"
 description = "Behavioral evaluation framework for non-deterministic AI agents"
 readme = "README.md"
 authors = [

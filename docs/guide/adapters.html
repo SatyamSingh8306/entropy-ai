@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Framework Adapters — EntroPy</title>
-  <meta name="description" content="Map framework agents to EntroPy AgentRuns with lazy adapters."/>
+  <meta name="description" content="Map framework agents to EntroPy AgentRuns with lazy adapters — code for every supported framework."/>
   <link rel="stylesheet" href="../assets/css/styles.css"/>
   <link rel="icon" href="../assets/img/logo.svg"/>
   <script>window.SITE_ROOT='..';</script>
@@ -18,12 +18,14 @@
       framework <strong>lazily</strong>, so
       <code>import entropy</code> works even when none are installed.</p>
 
-      <h2>Helpers</h2>
+      <p>Every adapter exposes a <code>from_*</code> helper and is also reachable
+      through automatic routing with <code>find_adapter</code>:</p>
       <pre><code>from entropy import (from_langchain, from_langgraph, from_openai,
                      from_crewai, from_pydanticai, from_autogen,
-                     from_google_adk, from_mcp, from_custom)
+                     from_google_adk, from_mcp, from_custom, find_adapter)
 
-runnable = from_langchain(my_langchain_agent)   # now a callable -> AgentRun</code></pre>
+runnable = from_langchain(my_langchain_agent)   # now a callable -> AgentRun
+runnable = find_adapter(my_langchain_agent)()   # auto-detect the framework</code></pre>
 
       <table>
         <thead><tr><th>Helper</th><th>Framework</th><th>Extra</th></tr></thead>
@@ -40,11 +42,130 @@ runnable = from_langchain(my_langchain_agent)   # now a callable -> AgentRun</co
         </tbody>
       </table>
 
-      <h2>Automatic routing</h2>
-      <p><code>instrument(agent)</code> detects the framework type and routes to
-      the matching adapter automatically — no need to call the explicit
-      <code>from_*</code> helper:</p>
-      <pre><code>wrapped = instrument(my_langchain_agent)   # -> LangChainAdapter</code></pre>
+      <h2>Code per framework</h2>
+      <p>Each snippet below builds a minimal agent, wraps it with the matching
+      adapter, and runs a Monte&nbsp;Carlo evaluation. Wrap the call in a small
+      retry helper if your model is flaky (local GPU models sometimes 500).</p>
+
+      <h3>LangChain</h3>
+      <pre><code>from langchain_core.runnables import RunnableLambda
+from entropy import from_langchain, Suite, Dataset, Case
+
+agent = RunnableLambda(lambda x: {"output": x["input"] + "!"})
+wrapped = from_langchain(agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi", expected="hi!")]), trials=100,
+)
+print(results["success_rate"], results["behavioral_entropy"])</code></pre>
+
+      <h3>LangGraph / <code>create_agent</code></h3>
+      <pre><code>from langchain.agents import create_agent
+from langchain_core.tools import tool
+from langchain_ollama import ChatOllama
+from entropy import from_langgraph, Suite, Dataset, Case
+
+@tool
+def get_weather(city: str) -> str:
+    """Return a canned weather report for a city."""
+    return f"It is sunny in {city}."
+
+agent = create_agent(ChatOllama(model="minimax-m3:cloud", temperature=0.0),
+                     tools=[get_weather],
+                     system_prompt="You are a helpful assistant. Answer concisely.")
+wrapped = from_langgraph(agent)   # create_agent -> CompiledStateGraph
+
+results = Suite(seed=42).run(
+    wrapped,
+    Dataset([Case(input="weather in Paris?",
+                  check=lambda o: "sunny" in (o or "").lower())]),
+    trials=10,
+)</code></pre>
+      <p class="note"><code>create_agent</code> returns a <code>CompiledStateGraph</code>
+      whose result is <code>{"messages": [...]}</code> (no <code>"output"</code> key)
+      and expects <code>{"messages": [HumanMessage(...)]}</code> as input. The
+      adapter handles both shapes automatically.</p>
+
+      <h3>OpenAI Agents SDK</h3>
+      <pre><code>from agents import Agent
+from entropy import from_openai, Suite, Dataset, Case
+
+agent = Agent(name="assistant", instructions="You are helpful.")
+wrapped = from_openai(agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi", expected="hi")]), trials=10,
+)</code></pre>
+
+      <h3>CrewAI</h3>
+      <pre><code>from crewai import Agent, Task, Crew
+from entropy import from_crewai, Suite, Dataset, Case
+
+researcher = Agent(role="researcher", goal="answer questions", backstory="expert")
+task = Task(description="Answer the user: {input}", agent=researcher)
+crew = Crew(agents=[researcher], tasks=[task])
+wrapped = from_crewai(crew)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="What is 2+2?")]), trials=10,
+)</code></pre>
+
+      <h3>PydanticAI</h3>
+      <pre><code>from pydantic_ai import Agent
+from entropy import from_pydanticai, Suite, Dataset, Case
+
+agent = Agent("openai:gpt-4o", instructions="Be helpful.")
+wrapped = from_pydanticai(agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi")]), trials=10,
+)</code></pre>
+
+      <h3>AutoGen</h3>
+      <pre><code>from autogen import ConversableAgent
+from entropy import from_autogen, Suite, Dataset, Case
+
+agent = ConversableAgent("bot", llm_config={"config_list": [...]})
+wrapped = from_autogen(agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi")]), trials=10,
+)</code></pre>
+
+      <h3>Google ADK</h3>
+      <pre><code>from google.adk.agents import LlmAgent
+from entropy import from_google_adk, Suite, Dataset, Case
+
+agent = LlmAgent(model="gemini-2.0-flash", name="assistant",
+                 instruction="Be helpful.")
+wrapped = from_google_adk(agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi")]), trials=10,
+)</code></pre>
+
+      <h3>MCP</h3>
+      <pre><code>from mcp import ClientSession
+from entropy import from_mcp, Suite, Dataset, Case
+
+# `session` is an already-connected MCP ClientSession
+wrapped = from_mcp(session, tool="run")
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi")]), trials=10,
+)</code></pre>
+
+      <h3>Your own agent (custom)</h3>
+      <pre><code>from entropy import from_custom, Suite, Dataset, Case
+
+def my_agent(inp):
+    return "echo: " + inp
+
+wrapped = from_custom(my_agent)
+
+results = Suite(seed=42).run(
+    wrapped, Dataset([Case(input="hi", expected="echo: hi")]), trials=100,
+)</code></pre>
 
       <h2>Discovery &amp; custom adapters</h2>
       <p>List registered adapters, or build your own with the
@@ -59,6 +180,7 @@ class MyAdapter(Adapter):
     def wrap(self, agent):
         def call(inp):
             res = agent.run_myfw(inp)
+            from entropy import AgentRun
             return AgentRun(run_id="", input=inp, output=res)
         return call</code></pre>
 
@@ -74,4 +196,3 @@ class MyAdapter(Adapter):
   <script src="../assets/js/site.js"></script>
 </body>
 </html>
-
