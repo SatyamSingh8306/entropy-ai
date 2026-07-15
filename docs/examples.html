@@ -117,10 +117,49 @@ entropy run --agent agent:agent --dataset dataset.json --trials 200
 entropy test --agent agent:agent --dataset dataset.json --baseline base.json --update
 entropy test --agent agent:agent --dataset dataset.json --baseline base.json</code></pre>
 
+      <h2>LangChain agent (Ollama / minimax-m3)</h2>
+      <p>A real LangChain agent built with <code>create_agent</code> on a local
+      Ollama model, wrapped and evaluated. Mirrors
+      <code>examples/langchain_ollama_e2e.py</code>:</p>
+      <pre><code>from langchain.agents import create_agent
+from langchain_core.tools import tool
+from langchain_ollama import ChatOllama
+from entropy import from_langgraph, Suite, Dataset, Case, assert_stable
+
+@tool
+def get_weather(city: str) -> str:
+    return f"It is sunny in {city}."
+
+agent = create_agent(ChatOllama(model="minimax-m3:cloud", temperature=0.0),
+                     tools=[get_weather],
+                     system_prompt="You are a helpful assistant. Answer concisely.")
+wrapped = from_langgraph(agent)   # create_agent -> CompiledStateGraph
+
+dataset = Dataset([
+    Case(input="What is the weather in Paris?",
+         check=lambda o: "sunny" in (o or "").lower()),
+    Case(input="Tell me a joke.",
+         check=lambda o: bool(o) and len(o) > 15),
+])
+
+results = Suite(seed=42).run(wrapped, dataset, trials=3)
+for k, v in results.items():
+    print(f"  {k}: {v}")
+
+assert_stable(results, success_rate__gt=0.5, drift_score__lt=0.6)
+print("\nassert_stable: OK")</code></pre>
       <div class="callout tip">
         <h4>Run the bundled examples</h4>
-        <p><code>python examples/basic.py</code> and
-        <code>python examples/agent_demo.py</code> ship with the repo.</p>
+        <p><code>python examples/basic.py</code>,
+        <code>python examples/langchain_e2e.py</code>,
+        <code>python examples/langchain_ollama_e2e.py</code>,
+        <code>python examples/langchain_full_eval.py</code> and
+        <code>python examples/agent_demo.py</code> ship with the repo.
+        The Ollama examples need <code>ollama serve</code> and
+        <code>ollama pull minimax-m3:cloud</code>.
+        <code>langchain_full_eval.py</code> is the full harness: Monte&nbsp;Carlo
+        evaluation, chaos resilience, Watcher observability, dashboard + report,
+        and a regression gate.</p>
       </div>
 
       <nav class="prevnext">
