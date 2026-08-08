@@ -12,7 +12,6 @@ authors = [
     { name = "Satyam Singh", email = "satyamsingh7734@gmail.com" },
 ]
 
-
 requires-python = ">=3.9"
 dependencies = [
     "pandas",
@@ -20,17 +19,6 @@ dependencies = [
     "jinja2",
     "rich",
     "pyyaml",
-]
-
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
 ]
 
 [project.optional-dependencies]
