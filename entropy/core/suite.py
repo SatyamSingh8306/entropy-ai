@@ -1,12 +1,14 @@
 """Monte Carlo evaluation suite (spec §9, §20) — the heart of EntroPy."""
 from __future__ import annotations
 
+import inspect
 import random
 from typing import Any, Callable, Iterable, List, Optional
 
 from ..core.models import AgentRun, ErrorEvent
 from ..datasets.cases import Case, make_case
 from ..metrics import Batch, default_metrics, get_metric
+from ..statistics import wilson_interval
 
 _OPS = {
     "__gt": lambda a, b: a > b,
@@ -33,10 +35,47 @@ class Suite:
         expected: Optional[Iterable] = None,
         check: Optional[Callable] = None,
     ) -> dict:
+        if isinstance(trials, bool) or not isinstance(trials, int) or trials < 1:
+            raise ValueError("trials must be a positive integer")
         rng = random.Random(self.seed)
         cases = self._as_cases(dataset, expected=expected, check=check)
         self.batches = [self._run_one(agent, case, trials, rng, extractor)
                         for case in cases]
+        return self._aggregate(self.batches)
+
+    async def run_async(
+        self,
+        agent: Callable,
+        dataset: Iterable,
+        trials: int = 100,
+        extractor: Optional[Callable[[AgentRun], List[str]]] = None,
+        expected: Optional[Iterable] = None,
+        check: Optional[Callable] = None,
+    ) -> dict:
+        """Await each agent call sequentially; use the same metrics as ``run``.
+
+        Accepts synchronous callables and callables returning awaitables.
+        Checks and extractors are synchronous. Cancellation propagates to the caller.
+        """
+        if isinstance(trials, bool) or not isinstance(trials, int) or trials < 1:
+            raise ValueError("trials must be a positive integer")
+        cases = self._as_cases(dataset, expected=expected, check=check)
+        self.batches = []
+        for case in cases:
+            batch = Batch(inp=case.input, metadata={"_latencies": []})
+            for _ in range(trials):
+                try:
+                    result = agent(case.input)
+                    if inspect.isawaitable(result):
+                        result = await result
+                except Exception as exc:
+                    run = AgentRun(run_id="", input=case.input, output=None,
+                                   events=[ErrorEvent("exception", {"error": str(exc)})],
+                                   metadata={"error": str(exc)})
+                else:
+                    run = self._as_run(result, case.input)
+                self._record_run(batch, case, run, extractor)
+            self.batches.append(batch)
         return self._aggregate(self.batches)
 
     # --- input normalization (developer-friendly defaults) -----------------
@@ -73,39 +112,42 @@ class Suite:
 
     # --- per-input Monte Carlo --------------------------------------------
     def _run_one(self, agent, case, trials: int, rng, extractor) -> Batch:
-        b = Batch(inp=case.input)
-        latencies: List[float] = []
+        b = Batch(inp=case.input, metadata={"_latencies": []})
         for _ in range(trials):
-            run = self._call(agent, case.input)
-            out = run.output
-            events = list(run.events)
-            b.outputs.append(out)
-            b.events.append(events)
-
-            if extractor:
-                beh = extractor(run)
-            elif events:
-                beh = [e.name for e in events]
-            else:
-                beh = [str(out)]
-            if not isinstance(beh, (list, tuple)):
-                beh = [str(beh)]
-            beh = [str(x) for x in beh]
-            b.behaviors.append(beh)
-            b.actions.append(beh[-1] if beh else str(out))
-            b.tool_calls.append([e.name for e in events if e.type == "tool"])
-
-            err = bool(run.metadata.get("error")) or any(e.type == "error" for e in events)
-            ok = case.is_success(out) and not run.metadata.get("error")
-            b.successes.append(ok)
-            b.costs.append(float(run.cost or 0.0))
-            b.errored.append(err)
-            b.recovered.append(err and ok)
-
-            if isinstance(run.metadata.get("latency"), (int, float)):
-                latencies.append(float(run.metadata["latency"]))
-        b.metadata["_latencies"] = latencies
+            self._record_run(b, case, self._call(agent, case.input), extractor)
         return b
+
+    def _record_run(self, b: Batch, case: Case, run: AgentRun,
+                    extractor: Optional[Callable]) -> None:
+        out = run.output
+        events = list(run.events)
+        b.outputs.append(out)
+        b.events.append(events)
+
+        if extractor:
+            beh = extractor(run)
+        elif events:
+            beh = [e.name for e in events]
+        else:
+            beh = [str(out)]
+        if not isinstance(beh, (list, tuple)):
+            beh = [str(beh)]
+        beh = [str(x) for x in beh]
+        b.behaviors.append(beh)
+        b.actions.append(beh[-1] if beh else str(out))
+        b.tool_calls.append([e.name for e in events if e.type == "tool"])
+
+        failed = run.metadata.get("error") not in (None, False)
+        err = failed or any(e.type == "error" for e in events)
+        ok = not failed and case.is_success(out)
+        b.successes.append(ok)
+        b.costs.append(float(run.cost or 0.0))
+        b.errored.append(err)
+        b.errors.append(str(run.metadata["error"]) if failed else None)
+        b.recovered.append(err and ok)
+
+        if isinstance(run.metadata.get("latency"), (int, float)):
+            b.metadata["_latencies"].append(float(run.metadata["latency"]))
 
     @staticmethod
     def _call(agent, inp) -> AgentRun:
@@ -115,6 +157,14 @@ class Suite:
             return AgentRun(run_id="", input=inp, output=None,
                             events=[ErrorEvent("exception", {"error": str(e)})],
                             metadata={"error": str(e)})
+        if inspect.isawaitable(res):
+            if inspect.iscoroutine(res):
+                res.close()
+            raise TypeError("async agent requires evaluate_async or Suite.run_async")
+        return Suite._as_run(res, inp)
+
+    @staticmethod
+    def _as_run(res: Any, inp: Any) -> AgentRun:
         if isinstance(res, AgentRun):
             return res
         if isinstance(res, dict) and "output" in res:
@@ -133,7 +183,8 @@ class Suite:
 
         for m, vals in per.items():
             if not vals:
-                out[m] = [] if m in ("emergent_behavior", "behavior_fingerprint") else 0.0
+                out[m] = ([0.0, 1.0] if m == "confidence_interval" else
+                          [] if m in ("emergent_behavior", "behavior_fingerprint") else 0.0)
             elif m in ("emergent_behavior", "behavior_fingerprint"):
                 seen, merged = set(), []
                 for item in vals:
@@ -144,8 +195,9 @@ class Suite:
                             merged.append(sig)
                 out[m] = merged
             elif m == "confidence_interval":
-                out[m] = [sum(v[0] for v in vals) / len(vals),
-                          sum(v[1] for v in vals) / len(vals)]
+                out[m] = wilson_interval(
+                    sum(bool(s) for b in batches for s in b.successes),
+                    sum(len(b.successes) for b in batches))
             else:
                 out[m] = sum(vals) / len(vals)
         return out
@@ -170,6 +222,25 @@ def evaluate(
     >>> evaluate(my_agent, ["q1", "q2"], trials=50)
     """
     return Suite(seed=seed, metrics=metrics).run(
+        agent, inputs, trials=trials, expected=expected, check=check)
+
+
+async def evaluate_async(
+    agent: Callable,
+    inputs: Iterable,
+    *,
+    trials: int = 100,
+    seed: int = 0,
+    metrics: Optional[List[str]] = None,
+    expected: Optional[Iterable] = None,
+    check: Optional[Callable] = None,
+) -> dict:
+    """Evaluate an async agent sequentially from an existing event loop.
+
+    Await this function directly in notebooks and async applications. Synchronous
+    callables also work, but blocking work is not moved to a background thread.
+    """
+    return await Suite(seed=seed, metrics=metrics).run_async(
         agent, inputs, trials=trials, expected=expected, check=check)
 
 

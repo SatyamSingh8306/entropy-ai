@@ -10,8 +10,10 @@ from .core import (
     ActionEvent, ReasoningEvent, ToolCallEvent, ObservationEvent,
     MemoryReadEvent, MemoryWriteEvent, ErrorEvent, StateTransitionEvent,
     instrument, trace, event, current_trace,
-    Suite, evaluate, assert_stable,
+    Suite, evaluate, evaluate_async, assert_stable,
 )
+from .statistics import pass_at_k, wilson_interval, bootstrap_interval
+from .evaluation import evaluate_detailed, evaluate_detailed_async, compare_agents
 from .metrics import metric, Metric, Batch, default_metrics, layers
 from .datasets import (
     Dataset, Case, GoldenCase, Scenario, BehaviorCase, FailureCase, AdversarialCase,
@@ -43,10 +45,11 @@ __all__ = [
     "ActionEvent", "ReasoningEvent", "ToolCallEvent", "ObservationEvent",
     "MemoryReadEvent", "MemoryWriteEvent", "ErrorEvent", "StateTransitionEvent",
     "instrument", "trace", "event", "current_trace",
-    "metric", "Batch", "default_metrics", "layers", "evaluate",
+    "metric", "Batch", "default_metrics", "layers", "evaluate", "evaluate_async",
     "adapter", "find_adapter", "list_adapters",
     "from_langchain", "from_langgraph", "from_openai", "from_crewai",
     "from_pydanticai", "from_autogen", "from_google_adk", "from_mcp", "from_custom",
     "exporter", "discover",
-    "assert_stable",
+    "assert_stable", "pass_at_k", "wilson_interval", "bootstrap_interval",
+    "evaluate_detailed", "evaluate_detailed_async", "compare_agents",
 ]

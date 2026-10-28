@@ -13,6 +13,7 @@ from ..benchmarks.bench import benchmark_refs, to_markdown, load_dataset
 from ..datasets import Dataset, Case
 from ..regression.test import run_regression
 from ..core.suite import Suite
+from ..evaluation import evaluate_detailed, compare_agents
 from ..chaos.runner import ChaosRunner
 
 
@@ -49,11 +50,14 @@ def cmd_run(args):
     agent = _load_ref(args.agent)
     ds = load_dataset(args.dataset)
     metrics = args.metrics.split(",") if args.metrics else None
-    res = Suite(seed=args.seed, metrics=metrics).run(
-        agent, ds, trials=args.trials)
+    if args.detailed:
+        res = evaluate_detailed(agent, ds, trials=args.trials, seed=args.seed,
+                                metrics=metrics, pass_k=args.pass_k)
+    else:
+        res = Suite(seed=args.seed, metrics=metrics).run(agent, ds, trials=args.trials)
     if args.out:
         _write_json(args.out, res)
-    print(json.dumps(_numeric(res), indent=2))
+    print(json.dumps(res if args.detailed else _numeric(res), indent=2, default=str))
 
 
 def cmd_test(args):
@@ -75,6 +79,17 @@ def cmd_test(args):
 
 
 def cmd_benchmark(args):
+    if args.paired:
+        if len(set(args.agents)) != len(args.agents):
+            raise ValueError("paired comparison requires distinct agent references")
+        result = compare_agents({ref: _load_ref(ref) for ref in args.agents},
+                                load_dataset(args.dataset), trials=args.trials,
+                                baseline=args.baseline, seed=args.seed,
+                                confidence=args.confidence, resamples=args.resamples)
+        print(json.dumps(result, indent=2, default=str))
+        if args.out:
+            _write_json(args.out, result)
+        return 0
     rows = benchmark_refs(args.agents, args.dataset, trials=args.trials, seed=args.seed)
     md = to_markdown(rows)
     print(md)
@@ -239,6 +254,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--seed", type=int, default=0)
     sp.add_argument("--metrics", default=None)
     sp.add_argument("--out", default=None)
+    sp.add_argument("--detailed", action="store_true", help="include per-case failures and pass@k")
+    sp.add_argument("--pass-k", nargs="+", type=int, default=[1], help="k values for --detailed")
     sp.set_defaults(func=cmd_run)
 
     sp = sub.add_parser("test", help="regression test vs baseline")
@@ -256,6 +273,10 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--trials", type=int, default=100)
     sp.add_argument("--seed", type=int, default=0)
     sp.add_argument("--out", default=None)
+    sp.add_argument("--paired", action="store_true", help="paired bootstrap success-rate comparison")
+    sp.add_argument("--baseline", default=None, help="baseline agent reference for --paired")
+    sp.add_argument("--confidence", type=float, default=0.95)
+    sp.add_argument("--resamples", type=int, default=2000)
     sp.set_defaults(func=cmd_benchmark)
 
     sp = sub.add_parser("compare", help="compare two result JSONs")

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AI Agent Evaluation: Pass@k, Failure Analysis &amp; Comparisons | EntroPy</title>
+  <meta name="description" content="Evaluate AI agents with per-input failure reports, Pass@k, Wilson confidence intervals and paired bootstrap comparisons. Runnable Python examples and CLI commands."/>
+  <link rel="canonical" href="https://satyamsingh8306.github.io/entropy-ai/guide/evaluation.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="EntroPy"/>
+  <meta property="og:title" content="AI Agent Evaluation: Pass@k, Failure Analysis &amp; Comparisons | EntroPy"/>
+  <meta property="og:description" content="Evaluate AI agents with per-input failure reports, Pass@k, Wilson confidence intervals and paired bootstrap comparisons. Runnable Python examples and CLI commands."/>
+  <meta property="og:url" content="https://satyamsingh8306.github.io/entropy-ai/guide/evaluation.html"/>
+  <meta name="twitter:card" content="summary"/>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+  <link rel="icon" href="../assets/img/logo.svg"/>
+  <script>window.SITE_ROOT='..';</script>
+</head>
+<body>
+  <div class="layout" id="layout-root">
+    <main class="content">
+      <h1 class="page-title">Evaluate, diagnose and compare AI agents</h1>
+      <p>Use EntroPy to inspect repeated agent failures, estimate success within several
+      attempts, and compare prompt or model versions on the same test cases. These
+      methods run locally and require no additional dependencies.</p>
+      <h2>Run a complete evaluation and comparison</h2>
+      <p>Install with <code>pip install entropy-ai</code>. Save the following as
+      <code>evaluation.py</code> and run it with Python. This example uses no provider API.</p>
+      <pre><code>from entropy import evaluate_detailed, compare_agents
+
+cases = {&quot; Hello &quot;: &quot;hello&quot;, &quot;WORLD&quot;: &quot;world&quot;, &quot; Test &quot;: &quot;test&quot;}
+
+def baseline(text):
+    return text.strip()
+
+def candidate(text):
+    return text.strip().lower()
+
+report = evaluate_detailed(candidate, cases, trials=10, pass_k=[1, 5, 10])
+print(report[&quot;pass_at_k&quot;])
+print(report[&quot;cases&quot;][0][&quot;confidence_interval&quot;])
+
+comparison = compare_agents(
+    {&quot;baseline&quot;: baseline, &quot;candidate&quot;: candidate}, cases,
+    trials=10, resamples=1000, seed=42,
+)
+print(comparison[&quot;comparisons&quot;][&quot;candidate&quot;][&quot;status&quot;])</code></pre>
+      <h2>Inspect failures per input</h2>
+      <p><code>evaluate_detailed</code> returns <code>summary</code> (the standard metric
+      dictionary), <code>total_trials</code>, macro-averaged <code>pass_at_k</code>,
+      <code>confidence</code> and <code>cases</code>. Each case contains its input,
+      metadata, trial and success counts, success rate, Wilson interval, behavioral
+      entropy, mean cost, mean latency and failed outputs.</p>
+      <p>Failure entries use 1-based trial numbers and retain <code>output</code>,
+      the agent's <code>error</code> metadata, and recorded error-event messages in
+      <code>errors</code>. A wrong answer can be a failure without an exception.
+      Cost and latency come from the agent's recorded data; missing latency is
+      <code>None</code>. No detailed report is automatically written to disk.</p>
+      <p>Provide expected answers or <code>check=</code> to measure correctness.
+      Otherwise success means no reported error. Failed outputs and inputs can
+      contain sensitive data; inspect reports before sharing them.</p>
+      <h2>Estimate success within k attempts</h2>
+      <p><code>pass_at_k(total, correct, k)</code> estimates the chance of at least one
+      successful result in k attempts using <code>1 - C(n-c, k) / C(n, k)</code>.
+      For 2 successes among 10 trials, <code>pass_at_k(10, 2, 3)</code> is approximately
+      0.5333. Each k must be positive and no larger than the number of trials.</p>
+      <p>In detailed reports, each input gets a separate estimate and the top-level
+      value averages inputs equally. Attempts must use the same success criterion
+      and be independent samples. This estimate does not model a stateful retry
+      policy that learns from previous failures.</p>
+      <h2>Report uncertainty</h2>
+      <p><code>wilson_interval(correct, total, confidence=0.95)</code> returns lower and
+      upper bounds for a binomial success proportion. Ten successful trials give
+      approximately <code>[0.7225, 1.0]</code>, rather than claiming perfect certainty.
+      No observations return <code>[0.0, 1.0]</code>.</p>
+      <p>The standard <code>confidence_interval</code> metric now uses Wilson bounds
+      over all observed trials. Pooling heterogeneous tasks is an approximation
+      under independent-trial assumptions. Detailed reports also give per-input
+      intervals. Their <code>confidence=</code> option applies to both the per-input
+      and summary Wilson intervals when that metric is selected.</p>
+      <p><code>bootstrap_interval(values, confidence=0.95, resamples=2000, seed=0)</code>
+      estimates a percentile interval for the mean of at least two finite numbers.
+      It resamples observations with replacement. Constant data produces a point
+      interval; bootstrap resampling cannot reveal unobserved variation.</p>
+      <h2>Compare prompts, models or agent versions</h2>
+      <p><code>compare_agents</code> accepts a mapping of at least two names to synchronous
+      callables. The first name is the baseline unless you pass <code>baseline=</code>.
+      Every agent runs all inputs for the requested number of trials. Generators
+      are materialized once so every candidate receives the same cases. Agents should
+      not mutate shared inputs in place.</p>
+      <p>The result includes detailed <code>agents</code> reports and
+      <code>comparisons</code> against the baseline. Each comparison contains metric
+      deltas (candidate minus baseline), counts of improved and regressed inputs,
+      and a bootstrap <code>success_rate_interval</code>. Resampling pairs per-input
+      success-rate differences; it does not pair unrelated trial outputs.</p>
+      <ul>
+        <li><code>improved</code>: the entire observed bootstrap interval is positive.</li>
+        <li><code>regressed</code>: the entire interval is negative.</li>
+        <li><code>inconclusive</code>: the interval includes zero.</li>
+        <li><code>insufficient_data</code>: only one input; the interval is <code>None</code>.</li>
+      </ul>
+      <p>These are exploratory comparisons without multiple-comparison correction.
+      More representative inputs and independent trials improve the evidence.
+      A seeded bootstrap is reproducible; it does not seed a remote model.
+      Cost and latency deltas do not determine the success-rate status. A latency
+      delta is <code>None</code> if either agent lacks latency evidence for any input;
+      comparison reports never substitute cost for elapsed time.</p>
+      <h2>Use async agents</h2>
+      <p><code>await evaluate_detailed_async(agent, inputs, trials=20, pass_k=[1, 5])</code>
+      returns the same report. Trials run sequentially. Checks stay synchronous and
+      cancellation propagates. <code>compare_agents</code> currently accepts synchronous
+      agents; use detailed async reports to inspect async agents individually.</p>
+      <h2>Use the CLI</h2>
+      <pre><code>entropy run --agent mymodule:agent --dataset cases.json --trials 20 --detailed --pass-k 1 5 10 --out details.json
+entropy benchmark --agents mymodule:old mymodule:new --dataset cases.json --trials 20 --paired --resamples 2000 --out comparison.json</code></pre>
+      <p>For paired comparisons, <code>--baseline mymodule:old</code> selects the reference
+      and <code>--confidence 0.99</code> changes interval coverage. Without the new
+      flags, existing run and benchmark output formats are preserved.</p>
+      <h2>Method references</h2>
+      <ul>
+        <li><a href="https://arxiv.org/abs/2107.03374">Evaluating Large Language Models Trained on Code</a>: Pass@k estimator.</li>
+        <li><a href="https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm">NIST confidence interval guidance</a>: Wilson score intervals.</li>
+      </ul>
+      <p>Next: <a href="metrics.html">choose evaluation metrics</a>,
+      <a href="tracing.html">record agent tool use</a>, or
+      <a href="../api.html">browse the Python API</a>.</p>
+    </main>
+  </div>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

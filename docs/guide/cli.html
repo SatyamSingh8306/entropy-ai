@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>CLI Reference — EntroPy</title>
   <meta name="description" content="The entropy command line: run, test, benchmark, chaos, watch, report and more."/>
+  <link rel="canonical" href="https://satyamsingh8306.github.io/entropy-ai/guide/cli.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="EntroPy"/>
+  <meta property="og:title" content="CLI Reference — EntroPy"/>
+  <meta property="og:description" content="The entropy command line: run, test, benchmark, chaos, watch, report and more."/>
+  <meta property="og:url" content="https://satyamsingh8306.github.io/entropy-ai/guide/cli.html"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="../assets/css/styles.css"/>
   <link rel="icon" href="../assets/img/logo.svg"/>
   <script>window.SITE_ROOT='..';</script>
@@ -36,6 +43,14 @@
           <tr><td><code>entropy report</code></td><td>Export a report from results JSON.</td></tr>
         </tbody>
       </table>
+
+      <h2>Detailed evaluations and paired comparisons</h2>
+      <pre><code>entropy run --agent mymodule:agent --dataset cases.json --trials 20 --detailed --pass-k 1 5 10 --out details.json
+entropy benchmark --agents mymodule:old mymodule:new --dataset cases.json --trials 20 --paired --confidence 0.95 --resamples 2000 --out comparison.json</code></pre>
+      <p><code>--detailed</code> includes per-input failures, uncertainty and Pass@k.
+      <code>--paired</code> compares success-rate differences by resampling inputs.
+      Select a reference with <code>--baseline mymodule:old</code>; otherwise the first
+      agent is used. See <a href="evaluation.html">evaluation methods and assumptions</a>.</p>
 
       <h2>Examples</h2>
       <pre><code># Run the suite

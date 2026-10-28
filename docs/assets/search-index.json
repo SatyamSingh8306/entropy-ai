@@ -1,7 +1,7 @@
 [
   {"href": "index.html", "title": "EntroPy — Introduction", "keywords": "entropy ai agent evaluation behavioral monte carlo entropy metrics overview", "snippet": "Behavioral evaluation framework for non-deterministic AI agents."},
   {"href": "guide/installation.html", "title": "Installation", "keywords": "install pip extras optional dependencies pdf jupyter langchain setuptools", "snippet": "Install EntroPy with pip; optional extras for frameworks, PDF, Jupyter and HuggingFace."},
-  {"href": "guide/quickstart.html", "title": "Quickstart", "keywords": "quickstart suite dataset case run trials seed example first evaluation", "snippet": "Run your first Monte Carlo evaluation in a few lines of code."},
+  {"href": "guide/quickstart.html", "title": "Quickstart", "keywords": "quickstart suite dataset case run trials seed example first evaluation async await evaluate_async run_async", "snippet": "Run your first Monte Carlo evaluation in a few lines of code."},
   {"href": "guide/concepts.html", "title": "Core Concepts", "keywords": "agentrun trace event node edge suite batch metrics model conceptual", "snippet": "AgentRun, Trace, Event, Suite and the Monte Carlo evaluation model."},
   {"href": "guide/metrics.html", "title": "Metrics Catalog", "keywords": "metrics success_rate entropy drift behavioral variance 56 layers reliability robustness", "snippet": "The 50+ metrics EntroPy computes: statistical, entropy, behavioral, tool, drift, safety and more."},
   {"href": "guide/tracing.html", "title": "Tracing", "keywords": "trace event instrument current_trace manual automatic agentrun wrapping", "snippet": "Instrument agents with trace(), event() and instrument() to capture behavior."},
@@ -14,5 +14,6 @@
   {"href": "guide/reports.html", "title": "Reports", "keywords": "export report html json markdown pdf jupyter export_report dashboard", "snippet": "Export evaluation results as HTML, JSON, Markdown, PDF or Jupyter notebooks."},
   {"href": "guide/plugins.html", "title": "Plugins", "keywords": "plugin metric adapter exporter discover entry point register extension", "snippet": "Extend EntroPy with custom metrics, adapters and exporters via the plugin system."},
   {"href": "api.html", "title": "API Reference", "keywords": "api reference suite trace dataset metric chaos watcher adapter functions classes", "snippet": "Full API reference for the core, metrics, simulation, chaos, observability and integration modules."},
-  {"href": "examples.html", "title": "Examples", "keywords": "examples basic agent_demo stochastic fickle_agent end to end walkthrough", "snippet": "End-to-end examples: evaluating a stochastic agent and asserting stability."}
+  {"href": "examples.html", "title": "Examples", "keywords": "examples basic agent_demo stochastic fickle_agent end to end walkthrough", "snippet": "End-to-end examples: evaluating a stochastic agent and asserting stability."},
+  {"href": "guide/evaluation.html", "title": "Evaluation & Comparisons", "keywords": "pass at k pass@k wilson bootstrap confidence interval compare agents detailed failures evaluate_detailed compare_agents async", "snippet": "Inspect per-input failures, estimate repeated-attempt success and compare agent versions using paired bootstrap intervals."}
 ]

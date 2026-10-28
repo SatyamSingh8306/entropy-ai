@@ -3,25 +3,32 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>EntroPy — Behavioral evaluation for non-deterministic AI agents</title>
-  <meta name="description" content="EntroPy measures uncertainty, drift, stochastic behavior and emergent failures in AI agents via Monte Carlo evaluation and entropy-based metrics."/>
+  <title>entropy-ai: Python AI Agent Evaluation &amp; Testing | EntroPy</title>
+  <meta name="description" content="Evaluate AI agent reliability with entropy-ai for Python. Run Monte Carlo trials, measure behavioral entropy and drift, and add regression checks. Install with pip."/>
+  <link rel="canonical" href="https://satyamsingh8306.github.io/entropy-ai/"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="EntroPy"/>
+  <meta property="og:title" content="entropy-ai: Python AI Agent Evaluation &amp; Testing | EntroPy"/>
+  <meta property="og:description" content="Evaluate AI agent reliability with entropy-ai for Python. Run Monte Carlo trials, measure behavioral entropy and drift, and add regression checks. Install with pip."/>
+  <meta property="og:url" content="https://satyamsingh8306.github.io/entropy-ai/"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="assets/css/styles.css"/>
   <link rel="icon" href="assets/img/logo.svg"/>
   <script>window.SITE_ROOT='.';</script>
 </head>
 <body>
   <section class="hero">
-    <span class="badge">v0.1.0 · local-first · zero vendor lock-in</span>
-    <h1>Behavioral evaluation<br/>for non-deterministic AI agents</h1>
+    <span class="badge">v0.2.0 · local-first · zero vendor lock-in</span>
+    <h1>AI agent evaluation<br/>and testing for Python</h1>
     <p class="lead">
-      EntroPy measures what other frameworks miss: <strong>uncertainty, drift,
+      EntroPy (<code>entropy-ai</code>) evaluates AI agent reliability: <strong>uncertainty, drift,
       stochastic behavior, and emergent failures</strong> — via Monte Carlo
       evaluation over repeated runs and entropy-based metrics.
       Framework-agnostic, runs locally, no vendor lock-in.
     </p>
     <div class="cta">
       <a class="btn primary" href="guide/quickstart.html">Get Started →</a>
-      <a class="btn" href="guide/concepts.html">Core Concepts</a>
+      <a class="btn" href="https://pypi.org/project/entropy-ai/">Install from PyPI</a>
       <a class="btn" href="https://github.com/SatyamSingh8306/entropy-ai">GitHub ↗</a>
     </div>
   </section>
@@ -45,21 +52,51 @@ pip install "entropy-ai[pdf,jupyter]" # optional: PDF / Jupyter reports</code></
       </div>
       <div>
         <h3>Your first evaluation</h3>
-        <pre><code>from entropy import Suite, Dataset, Case
+        <pre><code>from entropy import evaluate, assert_stable
 
-def my_agent(inp): ...
-    # return an output, an AgentRun, or dict with events
+def my_agent(text):
+    return text.strip().lower()
 
-dataset = Dataset([Case(input="q1", expected="correct")])
-results = Suite(seed=42).run(my_agent, dataset, trials=100)
-print(results)  # 50+ metrics</code></pre>
+results = evaluate(my_agent, {" Hello ": "hello", "WORLD": "world"}, trials=20)
+print(results["success_rate"])        # 1.0
+print(results["behavioral_entropy"])  # 0.0
+assert_stable(results, success_rate__gte=0.95)</code></pre>
       </div>
     </div>
+  </section>
+
+  <section class="home-code">
+    <h2>Test agent reliability before your next release</h2>
+    <p>A single successful answer does not tell you how often an agent will succeed.
+      EntroPy runs your synchronous Python callable repeatedly and measures the distribution
+      of its outputs and recorded events. Use expected answers or a custom check to define success.</p>
+    <h3>Start locally, then connect your agent</h3>
+    <p>The example above needs no API key. Install with <code>pip install entropy-ai</code>,
+      save the code in a Python file, and run it. Two inputs with 20 trials make 40 agent calls.
+      When you connect a paid provider, those calls may incur costs.</p>
+    <h3>Choose what to measure</h3>
+    <p>Measure output consistency with behavioral entropy, compare repeated runs for drift,
+      and use <code>assert_stable</code> to fail a regression check when success falls below
+      your threshold. Without expected answers or a check, success only means no reported error.
+      Tool and trajectory metrics need recorded events; a seed does not make a remote model deterministic.</p>
+    <nav aria-label="Evaluation guides">
+      <ul>
+        <li><a href="guide/installation.html">Install entropy-ai and optional integrations</a></li>
+        <li><a href="guide/quickstart.html">Run a complete AI agent evaluation</a></li>
+        <li><a href="guide/adapters.html">Evaluate LangChain, LangGraph and OpenAI agents</a></li>
+        <li><a href="guide/evaluation.html">Compare agents, estimate Pass@k and diagnose failures</a></li>
+        <li><a href="guide/metrics.html">Understand entropy, success rate and drift metrics</a></li>
+        <li><a href="guide/tracing.html">Record agent events and tool trajectories</a></li>
+        <li><a href="guide/chaos.html">Test resilience with fault injection</a></li>
+        <li><a href="examples.html">Explore Python evaluation examples</a></li>
+      </ul>
+    </nav>
   </section>
 
   <footer class="footer">
     <p>EntroPy — behavioral evaluation for non-deterministic AI agents.</p>
     <p><a href="https://github.com/SatyamSingh8306/entropy-ai">GitHub</a> · <a href="api.html">API Reference</a> · <a href="guide/cli.html">CLI</a> · <a href="guide/metrics.html">Metrics</a></p>
+    <p><a href="sitemap.xml">Sitemap</a></p>
     <p>Static documentation site · deployable to GitHub Pages.</p>
   </footer>
 
