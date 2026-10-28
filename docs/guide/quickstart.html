@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Quickstart — EntroPy</title>
   <meta name="description" content="Run your first Monte Carlo behavioral evaluation with EntroPy."/>
+  <link rel="canonical" href="https://satyamsingh8306.github.io/entropy-ai/guide/quickstart.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="EntroPy"/>
+  <meta property="og:title" content="Quickstart — EntroPy"/>
+  <meta property="og:description" content="Run your first Monte Carlo behavioral evaluation with EntroPy."/>
+  <meta property="og:url" content="https://satyamsingh8306.github.io/entropy-ai/guide/quickstart.html"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="../assets/css/styles.css"/>
   <link rel="icon" href="../assets/img/logo.svg"/>
   <script>window.SITE_ROOT='..';</script>
@@ -57,6 +64,26 @@ print("assert_stable: OK")</code></pre>
         <li>a <strong>dataset</strong> — a list of <code>Case</code>s, and</li>
         <li>a <strong>Suite</strong> — the Monte Carlo runner.</li>
       </ul>
+
+      <h2>Evaluate an async agent</h2>
+      <p>Use <code>evaluate_async</code> to await each agent call and compute the same metrics.
+      Trials run sequentially. In notebooks, await the function directly; in a script:</p>
+      <pre><code>import asyncio
+from entropy import evaluate_async
+
+async def agent(text):
+    await asyncio.sleep(0)
+    return text.strip().lower()
+
+async def main():
+    results = await evaluate_async(agent, {" Hello ": "hello"}, trials=20)
+    print(results["success_rate"])  # 1.0
+
+asyncio.run(main())</code></pre>
+      <p>For an extractor and access to recorded batches, use <code>await Suite().run_async(...)</code>.
+      Checks and extractors are synchronous. Cancellation propagates to the caller.
+      Synchronous callables work too, but blocking work stays on the event loop.
+      Existing framework adapters are synchronous; wrap the SDK's async API in your own callable.</p>
 
       <h2>1. Define an agent</h2>
       <p>An agent is any callable. It may return a plain value, an

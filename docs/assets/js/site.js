@@ -21,6 +21,7 @@
     {
       title: "Guides",
       links: [
+        { href: "guide/evaluation.html", label: "Evaluation & Comparisons" },
         { href: "guide/metrics.html", label: "Metrics Catalog" },
         { href: "guide/tracing.html", label: "Tracing" },
         { href: "guide/datasets.html", label: "Datasets" },
@@ -62,12 +63,12 @@
     '<a class="brand" href="' + ROOT + '/index.html">' +
       '<img src="' + ROOT + '/assets/img/logo.svg" alt="EntroPy logo"/>' +
       '<span class="name">EntroPy</span>' +
-      '<span class="tag">v0.1.0</span>' +
+      '<span class="tag">v0.2.0</span>' +
     '</a>' +
     '<div class="header-spacer"></div>' +
     '<div class="header-search">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-      '<input id="search-input" type="text" placeholder="Search docs…" autocomplete="off"/>' +
+      '<input id="search-input" type="text" aria-label="Search documentation" placeholder="Search docs…" autocomplete="off"/>' +
       '<div class="search-results" id="search-results"></div>' +
     '</div>' +
     '<button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">☾</button>' +

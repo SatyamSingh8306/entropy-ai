@@ -1,7 +1,7 @@
 """Statistical metrics (spec §7 Statistical Metrics / §9)."""
 from __future__ import annotations
 
-import math
+from ..statistics import wilson_interval
 from .registry import (
     Metric, metric, default, mean, variance, bernoulli_entropy, norm_entropy,
 )
@@ -42,15 +42,10 @@ class RobustnessScore(Metric):
 
 @metric("confidence_interval")
 class ConfidenceInterval(Metric):
-    """95% CI for success_rate as [lo, hi] (Wald approx)."""
+    """95% Wilson score interval for success_rate as [lo, hi]."""
 
     def compute(self, b):
-        n = len(b.successes)
-        if n == 0:
-            return [0.0, 0.0]
-        p = mean([1.0 if s else 0.0 for s in b.successes])
-        se = math.sqrt(p * (1 - p) / n)
-        return [max(0.0, p - 1.96 * se), min(1.0, p + 1.96 * se)]
+        return wilson_interval(sum(bool(s) for s in b.successes), len(b.successes))
 
 
 @metric("entropy")

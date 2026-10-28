@@ -23,6 +23,7 @@ class Batch:
     errored: List[bool] = field(default_factory=list)
     recovered: List[bool] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
+    errors: List[Optional[str]] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Metrics Catalog — EntroPy</title>
   <meta name="description" content="Every metric EntroPy computes: statistical, entropy, behavioral, tool, execution, memory, multi-agent, drift and safety."/>
+  <link rel="canonical" href="https://satyamsingh8306.github.io/entropy-ai/guide/metrics.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="EntroPy"/>
+  <meta property="og:title" content="Metrics Catalog — EntroPy"/>
+  <meta property="og:description" content="Every metric EntroPy computes: statistical, entropy, behavioral, tool, execution, memory, multi-agent, drift and safety."/>
+  <meta property="og:url" content="https://satyamsingh8306.github.io/entropy-ai/guide/metrics.html"/>
+  <meta name="twitter:card" content="summary"/>
   <link rel="stylesheet" href="../assets/css/styles.css"/>
   <link rel="icon" href="../assets/img/logo.svg"/>
   <script>window.SITE_ROOT='..';</script>
@@ -32,7 +39,7 @@
         <div class="metric-card"><div class="mname">reliability <span class="layer-tag">default</span></div><div class="mdesc">Mean success across trials.</div></div>
         <div class="metric-card"><div class="mname">variance <span class="layer-tag">default</span></div><div class="mdesc">Variance of per-trial cost.</div></div>
         <div class="metric-card"><div class="mname">robustness <span class="layer-tag">default</span></div><div class="mdesc">Mean recovery rate across trials.</div></div>
-        <div class="metric-card"><div class="mname">confidence_interval <span class="layer-tag">default</span></div><div class="mdesc">95% CI for success_rate as [lo, hi] (Wald approx).</div></div>
+        <div class="metric-card"><div class="mname">confidence_interval <span class="layer-tag">default</span></div><div class="mdesc">95% Wilson score interval for pooled success_rate as [lo, hi]; [0, 1] for no observations. Independent-trial approximation.</div></div>
         <div class="metric-card"><div class="mname">entropy <span class="layer-tag">default</span></div><div class="mdesc">Normalized entropy over primary actions.</div></div>
         <div class="metric-card"><div class="mname">stability_index <span class="layer-tag">default</span></div><div class="mdesc">1 − normalized variance of the success outcome.</div></div>
         <div class="metric-card"><div class="mname">reliability_score</div><div class="mdesc">success_rate × stability_index.</div></div>

@@ -1,4 +1,5 @@
 import random
+import pytest
 
 from entropy import Suite, Dataset, Case, assert_stable, metric, AgentRun, Event
 
@@ -69,3 +70,40 @@ def test_custom_metric_plugin():
     res = Suite(metrics=["my_dummy"]).run(lambda i: "x",
                                           Dataset([Case(input="x")]), trials=5)
     assert res["my_dummy"] == 1.0
+
+
+@pytest.mark.parametrize("wrapped", [False, True])
+def test_empty_exception_message_is_a_failure(wrapped):
+    from entropy import evaluate, instrument
+
+    def agent(inp):
+        raise RuntimeError()
+
+    def check(output):
+        raise AssertionError("failed runs must not reach the output checker")
+
+    results = evaluate(instrument(agent) if wrapped else agent, ["x"],
+                       trials=2, check=check)
+    assert results["success_rate"] == 0.0
+    assert results["recovery_score"] == 0.0
+
+
+@pytest.mark.parametrize("trials", [0, -1, 1.5, True, "2", None])
+def test_invalid_trials_rejected_before_agent_runs(trials):
+    from entropy import evaluate
+
+    def agent(inp):
+        raise AssertionError("invalid trials must not invoke the agent")
+
+    with pytest.raises(ValueError, match="positive integer"):
+        evaluate(agent, ["x"], trials=trials)
+
+
+def test_recovered_error_event_can_still_succeed():
+    run = AgentRun(run_id="", input="x", output="done",
+                   events=[Event("error", "temporary_failure")])
+    suite = Suite()
+    results = suite.run(lambda inp: run, {"x": "done"}, trials=1)
+    assert results["success_rate"] == 1.0
+    assert results["recovery_score"] == 1.0
+    assert suite.batches[0].successes == [True]
